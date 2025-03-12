@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Dimensions } from "react-native";
 import { Actionsheet, Button, useDisclose } from "native-base";
 import useCountries from "../../../db/hooks/useCountries";
-import useHomeCountry, {
+import {
   useHomeCountryMutation,
 } from "../../../db/hooks/useHomeCountry";
-import RNPickerSelect from "react-native-picker-select";
 import YellowButton from "../YellowButton";
+import CustomDropdown from "../CustomDropdown";
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function InputButton() {
   const { data: countries } = useCountries();
-  const { data: homeCountry } = useHomeCountry();
   const {
     mutate: setHomeCountry,
     isLoading: updatingHomeCountry,
@@ -41,13 +42,21 @@ export default function InputButton() {
     onClose();
   }, [homeCountryUpdateFailed, homeCountryUpdated]);
 
-  const currencyList = useMemo(() => {
-    return (countries || []).map(({ country, currency, id }) => ({
-      label: `${country}, ${currency}`,
-      value: id,
-      key: id,
+  // Format countries for the dropdown
+  const dropdownItems = useMemo(() => {
+    if (!countries) return [];
+    return countries.map(country => ({
+      id: country.id,
+      value: country.id,
+      label: `${country.country}, ${country.currency}`,
     }));
   }, [countries]);
+
+  // Get the selected country name and currency
+  const selectedCountry = useMemo(() => {
+    if (!selectedCountryId || !countries) return null;
+    return countries.find(c => c.id === selectedCountryId);
+  }, [selectedCountryId, countries]);
 
   return (
     <>
@@ -62,23 +71,33 @@ export default function InputButton() {
           <Text style={styles.buttonText}>Home Country</Text>
         </Button>
         <Actionsheet isOpen={isOpen} onClose={onClose}>
-          <Actionsheet.Content>
+          <Actionsheet.Content style={styles.actionsheetContent}>
             <Actionsheet.Item
-              style={{ backgroundColor: "transparent", alignItems: "center" }}
+              style={styles.actionsheetItem}
             >
               <View style={styles.container}>
                 <Text style={styles.text}>Home Currency</Text>
-                <View style={styles.selectorGroup}>
-                  <Button style={styles.button}>{"💰"}</Button>
-                  <View style={styles.selector}>
-                    <RNPickerSelect
-                      placeholder={{ label: "Choose Home Currency" }}
-                      onValueChange={setSelectedCountryId}
-                      value={selectedCountryId || homeCountry?.id}
-                      items={currencyList}
-                    />
-                  </View>
+                
+                {/* Using our new CustomDropdown component */}
+                <View style={styles.dropdownWrapper}>
+                  <CustomDropdown
+                    items={dropdownItems}
+                    selectedValue={selectedCountryId}
+                    onValueChange={(value) => setSelectedCountryId(value)}
+                    placeholder="Choose Home Currency"
+                    leftIcon={<Text style={styles.iconText}>{selectedCountry?.flag || "💰"}</Text>}
+                    width={SCREEN_WIDTH * 0.85}
+                    showIcons={false}
+                  />
                 </View>
+                
+                {/* Show the selected country */}
+                {selectedCountryId && (
+                  <Text style={styles.selectedText}>
+                    Selected: {selectedCountry?.country || 'Unknown'}
+                  </Text>
+                )}
+                
                 <YellowButton
                   disabled={updatingHomeCountry}
                   onPress={onSave}
@@ -106,44 +125,35 @@ const styles = StyleSheet.create({
   },
   container: {
     alignItems: "center",
-    height: 200,
     width: 350,
+    paddingBottom: 20,
   },
-  selectorGroup: {
-    flexDirection: "row",
-    alignSelf: "center",
-    height: "25%",
+  actionsheetContent: {
     width: "100%",
-    marginTop: 20,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderRadius: 10,
-    borderColor: "#C3C5F3",
-  },
-  button: {
-    height: "100%",
-    width: 56,
-    backgroundColor: "#F3F6FF",
-    borderColor: "#C3C5F3",
-    borderWidth: 0.3,
-    borderTopLeftRadius: 7,
-    borderBottomLeftRadius: 7,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  selector: {
-    backgroundColor: "transparent",
     alignItems: "center",
-    justifyContent: "center",
-    width: "81%",
-    borderRadius: 10,
-    borderColor: "transparent",
+  },
+  actionsheetItem: {
+    backgroundColor: "transparent",
+    width: "100%",
+    alignItems: "center",
+  },
+  dropdownWrapper: {
+    width: "100%",
+    marginVertical: 20,
+    alignItems: "center",
+  },
+  dropdownContainer: {
+    marginBottom: 10,
+  },
+  iconText: {
+    fontSize: 18,
   },
   text: {
     fontWeight: "600",
     fontSize: 18,
     lineHeight: 21,
     color: "#494EBF",
+    marginBottom: 10,
   },
   mainText: {
     fontWeight: "600",
@@ -165,5 +175,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#f7d253",
     alignItems: "center",
+  },
+  selectedText: {
+    marginBottom: 15,
+    color: "#494EBF",
+    fontWeight: "600",
   },
 });

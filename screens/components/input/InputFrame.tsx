@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
   },
   InputArea: {
     marginLeft: 20,
+    marginBottom: Platform.OS === 'ios' ? 0 : 15,
     height: 150,
     width: 340,
   },

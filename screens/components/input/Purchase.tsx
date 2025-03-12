@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
-import { Checkbox, Modal, Spinner, HStack, Heading } from "native-base";
+import React, { useState, useEffect } from "react";
+import { Checkbox, Modal, Spinner, HStack, Heading, Toast } from "native-base";
 import { PurchasesPackage } from "react-native-purchases";
 import { useRevenueCat } from "../../../utils/RevenueCatProvider";
 import BigBlueButton from "../BigBlueButton";
@@ -12,20 +12,63 @@ interface PurchaseProps {
   setIsPromoOpened: (isOpen: boolean) => void;
 }
 
+const PURCHASE_TIMEOUT = 30000;
+
 const Purchase: React.FC<PurchaseProps> = ({
   isPromoOpened,
   setIsPromoOpened,
 }) => {
   const { packages } = useRevenueCat();
   const [isLoading, setIsLoading] = useState(false);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const { mutate: onPurchase } = usePurchasePackage();
+
+  // Clear timeout when component unmounts
+  useEffect(() => {
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [timeoutId]);
 
   const handlePurchase = (pack: PurchasesPackage) => {
     setIsLoading(true);
+    
+    // Set timeout to prevent indefinite loading
+    const id = setTimeout(() => {
+      setIsLoading(false);
+      Toast.show({
+        title: "Purchase timeout",
+        description: "The purchase is taking longer than expected. The transaction may still be processing. Please check your subscriptions later.",
+        placement: "top",
+        duration: 5000,
+      });
+    }, PURCHASE_TIMEOUT);
+    
+    setTimeoutId(id);
+    
     onPurchase(pack, {
       onSuccess() {
+        if (timeoutId) clearTimeout(timeoutId);
+        setIsLoading(false);
         setIsPromoOpened(false);
       },
+      onError(error: any) {
+        if (timeoutId) clearTimeout(timeoutId);
+        setIsLoading(false);
+        Toast.show({
+          title: "Purchase failed",
+          description: error.message || "An error occurred during purchase. Please try again.",
+          placement: "top",
+          duration: 5000,
+        });
+      },
+      onSettled() {
+        // Ensure loading state is reset regardless of success or failure
+        if (timeoutId) clearTimeout(timeoutId);
+        setIsLoading(false);
+      }
     });
   };
 
@@ -36,8 +79,13 @@ const Purchase: React.FC<PurchaseProps> = ({
     <Modal isOpen={isPromoOpened} style={styles.paywallModal}>
       <View style={styles.container}>
         <TouchableOpacity
-          onPress={() => setIsPromoOpened(false)}
+          onPress={() => {
+            if (!isLoading) {
+              setIsPromoOpened(false);
+            }
+          }}
           style={styles.closeIcon}
+          disabled={isLoading}
         >
           <CloseIcon />
         </TouchableOpacity>
@@ -57,6 +105,7 @@ const Purchase: React.FC<PurchaseProps> = ({
               key={pack.identifier}
               onPress={() => setSelectedPackage(pack)}
               style={styles.button}
+              disabled={isLoading}
             >
               <View style={styles.promoDescription}>
                 <Checkbox
@@ -65,6 +114,7 @@ const Purchase: React.FC<PurchaseProps> = ({
                   accessibilityLabel="This is a checkbox"
                   colorScheme="blue"
                   aria-label="This is a checkbox"
+                  isDisabled={isLoading}
                 />
                 <View style={styles.text}>
                   <Text>{pack.product.title}</Text>
@@ -75,7 +125,7 @@ const Purchase: React.FC<PurchaseProps> = ({
           ))}
         </View>
         <BigBlueButton
-          text="Subscribe"
+          text={isLoading ? "Processing..." : "Subscribe"}
           onPress={() => {
             if (selectedPackage) {
               handlePurchase(selectedPackage);
@@ -84,6 +134,7 @@ const Purchase: React.FC<PurchaseProps> = ({
             }
           }}
           isActive={selectedPackage ? true : false}
+          disabled={isLoading}
         />
       </View>
       {isLoading && (

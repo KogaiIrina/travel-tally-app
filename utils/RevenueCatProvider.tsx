@@ -10,7 +10,7 @@ import dbWrite from "../db/utils/write";
 import { REVENUE_CAT_API_KEYS } from "../config";
 
 interface RevenueCatProps {
-  purchasePackage?: (pack: PurchasesPackage) => Promise<void>;
+  purchasePackage?: (pack: PurchasesPackage) => Promise<any>;
   restorePermissions?: () => Promise<CustomerInfo>;
   user: UserState;
   packages: PurchasesPackage[];
@@ -88,19 +88,36 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Purchase a package
   const purchasePackage = async (pack: PurchasesPackage) => {
     try {
-      await Purchases.purchasePackage(pack);
-      // Directly add our consumable product
+      console.log(`Starting RevenueCat purchase for package: ${pack.product.identifier}`);
+      
+      // First complete the purchase with RevenueCat
+      const purchaseResult = await Purchases.purchasePackage(pack);
+      console.log("RevenueCat purchase completed successfully", purchaseResult);
+      
+      // Update local state immediately to provide feedback to the user
       setUser((prevUser) => ({ ...prevUser, cookies: prevUser.cookies + 5 }));
-      // Save in db
-      await dbWrite(
-        "INSERT INTO subscription (id, purchase_id, is_active, date) VALUES (?, ?, ?, ?)" +
-          " ON CONFLICT(id) DO UPDATE SET purchase_id = excluded.purchase_id, is_active = excluded.is_active, date = excluded.date",
-        [1, pack.product.identifier, 1, new Date().toISOString()]
-      );
+      
+      // Then save to database (don't block UI on this)
+      try {
+        console.log("Saving subscription to database");
+        await dbWrite(
+          "INSERT INTO subscription (id, purchase_id, is_active, date) VALUES (?, ?, ?, ?)" +
+            " ON CONFLICT(id) DO UPDATE SET purchase_id = excluded.purchase_id, is_active = excluded.is_active, date = excluded.date",
+          [1, pack.product.identifier, 1, new Date().toISOString()]
+        );
+        console.log("Subscription saved to database successfully");
+      } catch (dbError) {
+        // Log database error but don't fail the purchase
+        console.error("Error saving subscription to database:", dbError);
+      }
+      
+      return purchaseResult;
     } catch (e: any) {
+      console.error("Error during RevenueCat purchase:", e);
       if (!e.userCancelled) {
         alert(`ERROR: ${e.message}`);
       }
+      throw e;
     }
   };
 
