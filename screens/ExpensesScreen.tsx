@@ -28,12 +28,16 @@ import AppliedFilterIndicator from "../organisms/AppliedFilterIndicator";
 import { useCountryById } from "../db/hooks/useCountries";
 import StatisticButton from "./components/StatisticButton";
 import { getCurrentMonth } from "../utils/getCurrentMonth";
+import BottomActionBar from "./components/BottomActionBar";
+import { useDisclose } from "native-base";
 
 export default function ExpensesScreen() {
   const [expenseFilter, setExpenseFilter] = useState<UseExpensesFilter>({});
   const { data: homeCountry } = useHomeCountry();
   const { mutate: deleteExpense } = useDeleteExpense();
   const { data: countryById } = useCountryById(expenseFilter.paymentCountryId);
+  const { isOpen: isStatsOpen, onOpen: onStatsOpen, onClose: onStatsClose } = useDisclose();
+  const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclose();
 
   const isFilterEmpty = Object.keys(expenseFilter).length === 0;
   const currentMonth = getCurrentMonth();
@@ -143,13 +147,24 @@ export default function ExpensesScreen() {
         )}
         keyExtractor={(item) => item.id.toString()}
         stickySectionHeadersEnabled
+        contentContainerStyle={styles.sectionListContent}
       />
-      <View style={styles.bottomMenu}>
-        <View style={styles.centeredButtonContainer}>
-          <BlueButton />
-        </View>
-        <StatisticButton />
-      </View>
+      
+      {/* Regular BlueButton with its UI hidden */}
+      <BlueButton 
+        hideUI={true} 
+        isOpen={isAddOpen} 
+        onClose={onAddClose} 
+      />
+      
+      {/* Bottom action bar with add and stats buttons */}
+      <BottomActionBar 
+        onAddPress={onAddOpen}
+        onStatsPress={onStatsOpen}
+      />
+      
+      {/* Statistics modal */}
+      <StatisticButton isOpen={isStatsOpen} onClose={onStatsClose} />
     </View>
   );
 }
@@ -177,19 +192,6 @@ function stringToCurrency({
 const styles = StyleSheet.create({
   arrowBox: {
     flexDirection: "row",
-  },
-  bottomMenu: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    height: 80,
-    position: "relative",
-  },
-  centeredButtonContainer: {
-    position: "absolute",
-    left: "48%",
-    transform: [{ translateX: -20 }],
   },
   instruction: {
     width: 250,
@@ -258,6 +260,9 @@ const styles = StyleSheet.create({
     paddingRight: 15,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+  },
+  sectionListContent: {
+    paddingBottom: 80,
   },
 });
 

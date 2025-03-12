@@ -10,7 +10,17 @@ import { useAddExpense } from "../../db/hooks/useExpenses";
 import useHomeCountry from "../../db/hooks/useHomeCountry";
 import { useSetting } from "../../utils/settings";
 
-export default function BlueButton() {
+interface BlueButtonProps {
+  hideUI?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const BlueButton: React.FC<BlueButtonProps> = ({ 
+  hideUI = false,
+  isOpen: externalIsOpen,
+  onClose: externalOnClose
+}) => {
   const [amountOfSpending, setAmountOfSpending] = useState<number>();
   const [date, setDate] = useState(new Date());
   const [sum, changeSum] = useState("");
@@ -23,7 +33,16 @@ export default function BlueButton() {
 
   const isoDate = date.toISOString().split("T")[0];
 
-  const { isOpen, onOpen, onClose } = useDisclose();
+  // Use internal state if external props are not provided
+  const { isOpen: internalIsOpen, onOpen, onClose: internalOnClose } = useDisclose();
+  
+  // Determine which values to use
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const onClose = externalOnClose || (() => {
+    internalOnClose();
+    // Reset form state when closing
+    setActiveExpenseTypeKey("");
+  });
 
   let isActive =
     homeCountry &&
@@ -111,9 +130,11 @@ export default function BlueButton() {
 
   return (
     <>
-      <Pressable style={styles.button} onPress={onButtonPress}>
-        <PlusIcon />
-      </Pressable>
+      {!hideUI && (
+        <Pressable style={styles.button} onPress={onButtonPress}>
+          <PlusIcon />
+        </Pressable>
+      )}
       <Actionsheet isOpen={isOpen} onClose={onClose}>
         <Actionsheet.Content maxHeight={"90%"} marginTop={marginTop}>
           <Box>
@@ -145,7 +166,7 @@ export default function BlueButton() {
       </Actionsheet>
     </>
   );
-}
+};
 
 const styles = StyleSheet.create({
   button: {
@@ -160,3 +181,5 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 });
+
+export default BlueButton;

@@ -2,23 +2,24 @@ import React, { useState, useMemo } from "react";
 import {
   StyleSheet,
   View,
-  Pressable,
   Text,
   Modal,
   Platform,
   ActivityIndicator,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
-import { Button, Actionsheet, useDisclose, ScrollView } from "native-base";
+import { Actionsheet, ScrollView, useColorModeValue } from "native-base";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { PieChart } from "react-native-gifted-charts";
-import StatisticIcon from "./expenses/icons/statistic";
 import { useGroupedExpenses } from "../../db/hooks/useExpenses";
 import { expensesList, isExpenseCategory } from "../../utils/expensesList";
-import CloseIcon from "./expenses/icons/close";
-import Legend from "./Legend";
+import ChartContainer from "./ChartContainer";
+import EnhancedLegend from "./EnhancedLegend";
+import DateRangePicker from "./DateRangePicker";
+import { Ionicons } from "@expo/vector-icons";
 
 const getPreviousMonth = () => {
   const date = new Date();
@@ -26,7 +27,15 @@ const getPreviousMonth = () => {
   return date;
 };
 
-const StatisticButton: React.FC = () => {
+interface StatisticButtonProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const StatisticButton: React.FC<StatisticButtonProps> = ({
+  isOpen = false,
+  onClose = () => {},
+}) => {
   const [dateStart, setDateStart] = useState(getPreviousMonth());
   const [dateEnd, setDateEnd] = useState(new Date());
   const [showPicker, setShowPicker] = useState<
@@ -44,7 +53,7 @@ const StatisticButton: React.FC = () => {
 
   const statisticData = useMemo(() => {
     if (!expenses) {
-      return;
+      return [];
     }
     return expenses.map((expense) => {
       if (!isExpenseCategory(expense.expense_types)) {
@@ -60,7 +69,9 @@ const StatisticButton: React.FC = () => {
     });
   }, [expenses]);
 
-  const { isOpen, onOpen, onClose } = useDisclose();
+  const bgColor = useColorModeValue("white", "#1A1A1A");
+  const textColor = useColorModeValue("#333333", "#E5E5E5");
+  const accentColor = "#FFB547";
 
   const handleDateChange = (
     event: DateTimePickerEvent,
@@ -97,61 +108,97 @@ const StatisticButton: React.FC = () => {
     refetch();
   };
 
+  const formatDateRange = () => {
+    const startDay = dateStart.getDate();
+    const startMonth = dateStart.toLocaleString('default', { month: 'short' });
+    const endDay = dateEnd.getDate();
+    const endMonth = dateEnd.toLocaleString('default', { month: 'short' });
+    const endYear = dateEnd.getFullYear();
+    
+    if (dateStart.getFullYear() === endYear) {
+      return `${startDay} ${startMonth} - ${endDay} ${endMonth}, ${endYear}`;
+    } else {
+      const startYear = dateStart.getFullYear();
+      return `${startDay} ${startMonth}, ${startYear} - ${endDay} ${endMonth}, ${endYear}`;
+    }
+  };
+
   return (
     <>
-      <Pressable style={styles.stats} onPress={onOpen}>
-        <StatisticIcon />
-      </Pressable>
       <Actionsheet isOpen={isOpen} onClose={onClose} hideDragIndicator>
-        <Actionsheet.Content>
+        <Actionsheet.Content style={[styles.actionsheetContent, { backgroundColor: bgColor }]}>
           <View style={styles.header}>
-            <Text style={styles.headerText}>Statistic for the period</Text>
-            <View style={styles.datePickerContainer}>
-              <DatePickerButton
-                label="Start"
-                onPress={() => {
-                  setTempDate(dateStart);
-                  setShowPicker("startDate");
-                }}
-                date={dateStart}
-              />
-              <DatePickerButton
-                label="End"
-                onPress={() => {
-                  setTempDate(dateEnd);
-                  setShowPicker("endDate");
-                }}
-                date={dateEnd}
-              />
-            </View>
+            <Text style={[styles.headerText, { color: textColor }]}>Expense Statistics</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Ionicons name="close" size={24} color={textColor} />
+            </TouchableOpacity>
           </View>
-          <View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#0000ff" />
-            ) : (statisticData ?? []).length > 0 ? (
-              <PieChart
-                data={statisticData ?? []}
-                donut
-                showText
-                textColor="black"
-                radius={150}
-                textSize={16}
-                showValuesAsLabels
-              />
-            ) : (
-              <Text>No data available</Text>
-            )}
-          </View>
+          
+          <DateRangePicker
+            startDate={dateStart}
+            endDate={dateEnd}
+            onStartDatePress={() => {
+              setTempDate(dateStart);
+              setShowPicker("startDate");
+            }}
+            onEndDatePress={() => {
+              setTempDate(dateEnd);
+              setShowPicker("endDate");
+            }}
+          />
+          
           <ScrollView
             contentContainerStyle={styles.scrollViewContent}
-            showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
-            scrollEventThrottle={16}
           >
-            <Legend statisticData={statisticData ?? []} />
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={accentColor} />
+                <Text style={[styles.loadingText, { color: textColor }]}>Loading data...</Text>
+              </View>
+            ) : statisticData.length > 0 ? (
+              <ChartContainer 
+                title="Expense Distribution" 
+                subtitle={formatDateRange()}
+              >
+                <View style={styles.chartWrapper}>
+                  <PieChart
+                    data={statisticData}
+                    donut
+                    showText
+                    textColor={textColor}
+                    radius={120}
+                    textSize={14}
+                    showValuesAsLabels
+                    innerRadius={60}
+                    innerCircleColor={bgColor}
+                    centerLabelComponent={() => (
+                      <View style={styles.centerLabel}>
+                        <Text style={[styles.centerLabelText, { color: textColor }]}>
+                          {statisticData.length}
+                        </Text>
+                        <Text style={[styles.centerLabelSubtext, { color: textColor }]}>
+                          Categories
+                        </Text>
+                      </View>
+                    )}
+                  />
+                </View>
+                <EnhancedLegend data={statisticData} />
+              </ChartContainer>
+            ) : (
+              <View style={styles.noDataContainer}>
+                <Ionicons name="bar-chart-outline" size={60} color={textColor} />
+                <Text style={[styles.noDataText, { color: textColor }]}>No data available</Text>
+                <Text style={[styles.noDataSubtext, { color: textColor }]}>
+                  Try selecting a different date range
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </Actionsheet.Content>
       </Actionsheet>
+      
       {Platform.OS === "ios" ? (
         <Modal
           transparent={true}
@@ -162,15 +209,21 @@ const StatisticButton: React.FC = () => {
           }}
         >
           <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Pressable
-                onPress={() => {
-                  setShowPicker("none");
-                }}
-                style={styles.closeButton}
-              >
-                <CloseIcon />
-              </Pressable>
+            <View style={[styles.modalContent, { backgroundColor: bgColor }]}>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: textColor }]}>
+                  {showPicker === "startDate" ? "Select Start Date" : "Select End Date"}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowPicker("none");
+                  }}
+                  style={styles.modalCloseButton}
+                >
+                  <Ionicons name="close" size={24} color={textColor} />
+                </TouchableOpacity>
+              </View>
+              
               {showPicker === "startDate" && (
                 <RNDateTimePicker
                   value={tempDate}
@@ -193,11 +246,12 @@ const StatisticButton: React.FC = () => {
                   style={styles.picker}
                 />
               )}
+              
               <TouchableOpacity
                 onPress={handleSetDate}
-                style={styles.setButton}
+                style={[styles.setButton, { backgroundColor: accentColor }]}
               >
-                <Text style={styles.buttonText}>Set</Text>
+                <Text style={styles.buttonText}>Apply</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -212,7 +266,6 @@ const StatisticButton: React.FC = () => {
               display="default"
               onChange={handleDateChange}
               maximumDate={new Date()}
-              style={styles.picker}
             />
           )}
           {showPicker === "endDate" && (
@@ -223,7 +276,6 @@ const StatisticButton: React.FC = () => {
               display="default"
               onChange={handleDateChange}
               maximumDate={new Date()}
-              style={styles.picker}
             />
           )}
         </>
@@ -232,82 +284,71 @@ const StatisticButton: React.FC = () => {
   );
 };
 
-interface DatePickerButtonProps {
-  label: string;
-  onPress: () => void;
-  date: Date;
-}
-
-const formatDate = (date: Date): string => {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
-const DatePickerButton: React.FC<DatePickerButtonProps> = ({
-  label,
-  onPress,
-  date,
-}) => (
-  <Button onPress={onPress} style={styles.datePickerButton}>
-    <Text>{label}</Text>
-    <Text>{formatDate(date)}</Text>
-  </Button>
-);
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  actionsheetItem: {
-    height: "80%",
-    borderRadius: 20,
-    alignItems: "center",
-  },
-  setButton: {
-    backgroundColor: "#FFB547",
-    borderRadius: 50,
-    width: 120,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    fontWeight: "800",
-    alignSelf: "center",
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    lineHeight: 22,
+  actionsheetContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   scrollViewContent: {
-    flexGrow: 1,
-  },
-  stats: {
-    position: "absolute",
-    right: 20,
-    height: 60,
-    width: 60,
+    paddingBottom: 24,
   },
   header: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   headerText: {
     fontSize: 20,
-    marginBottom: 10,
+    fontWeight: "600",
   },
-  datePickerContainer: {
-    flexDirection: "row",
-    width: "80%",
-    marginBottom: 20,
+  closeButton: {
+    padding: 4,
+  },
+  chartWrapper: {
+    marginVertical: 16,
     alignItems: "center",
-    justifyContent: "space-around",
   },
-  datePickerButton: {
-    width: 120,
-    height: 50,
-    backgroundColor: "transparent",
-    borderStyle: "solid",
-    borderWidth: 1,
+  centerLabel: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  centerLabelText: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  centerLabelSubtext: {
+    fontSize: 12,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+  noDataContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 40,
+  },
+  noDataText: {
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  noDataSubtext: {
+    marginTop: 8,
+    fontSize: 14,
+    opacity: 0.7,
   },
   modalContainer: {
     flex: 1,
@@ -316,31 +357,40 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: "white",
+    width: width - 40,
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 16,
     alignItems: "center",
   },
-  pickerWrapper: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
+  modalHeader: {
+    flexDirection: "row",
     alignItems: "center",
-    zIndex: 1000,
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  modalCloseButton: {
+    padding: 4,
   },
   picker: {
     width: "100%",
-    backgroundColor: "white",
   },
-  closeButton: {
-    height: 40,
-    width: 40,
+  setButton: {
+    borderRadius: 50,
+    width: 120,
+    height: 50,
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "flex-end",
+    marginTop: 16,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 
