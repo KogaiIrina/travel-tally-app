@@ -1,0 +1,1222 @@
+[
+  {
+    "country": "Afganistan",
+    "flag": "🇦🇫",
+    "currency": "AFN"
+  },
+  {
+    "country": "Albania",
+    "flag": "🇦🇱",
+    "currency": "ALL"
+  },
+  {
+    "country": "Algeria",
+    "flag": "🇩🇿",
+    "currency": "DZD"
+  },
+  {
+    "country": "American Samoa",
+    "flag": "🇦🇸",
+    "currency": "USD"
+  },
+  {
+    "country": "Andorra",
+    "flag": "🇦🇩",
+    "currency": "EUR"
+  },
+  {
+    "country": "Angola",
+    "flag": "🇦🇴",
+    "currency": "AOA"
+  },
+  {
+    "country": "Anguilla",
+    "flag": "🇦🇮",
+    "currency": "XCD"
+  },
+  {
+    "country": "Antarctica",
+    "flag": "🇦🇶",
+    "currency": "AAD"
+  },
+  {
+    "country": "Antigua and Barbuda",
+    "flag": "🇦🇬",
+    "currency": "XCD"
+  },
+  {
+    "country": "Argentina",
+    "flag": "🇦🇷",
+    "currency": "ARS"
+  },
+  {
+    "country": "Armenia",
+    "flag": "🇦🇲",
+    "currency": "AMD"
+  },
+  {
+    "country": "Aruba",
+    "flag": "🇦🇼",
+    "currency": "AWG"
+  },
+  {
+    "country": "Australia",
+    "flag": "🇦🇺",
+    "currency": "AUD"
+  },
+  {
+    "country": "Austria",
+    "flag": "🇦🇹",
+    "currency": "EUR"
+  },
+  {
+    "country": "Azerbaijan",
+    "flag": "🇦🇿",
+    "currency": "AZN"
+  },
+  {
+    "country": "Bahamas",
+    "flag": "🇧🇸",
+    "currency": "BSD"
+  },
+  {
+    "country": "Bahrain",
+    "flag": "🇧🇭",
+    "currency": "BHD"
+  },
+  {
+    "country": "Bangladesh",
+    "flag": "🇧🇩",
+    "currency": "BDT"
+  },
+  {
+    "country": "Barbados",
+    "flag": "🇧🇧",
+    "currency": "BBD"
+  },
+  {
+    "country": "Belarus",
+    "flag": "🇧🇾",
+    "currency": "BYN"
+  },
+  {
+    "country": "Belgium",
+    "flag": "🇧🇪",
+    "currency": "EUR"
+  },
+  {
+    "country": "Belize",
+    "flag": "🇧🇿",
+    "currency": "BZD"
+  },
+  {
+    "country": "Benin",
+    "flag": "🇧🇯",
+    "currency": "XOF"
+  },
+  {
+    "country": "Bermuda",
+    "flag": "🇧🇲",
+    "currency": "BMD"
+  },
+  {
+    "country": "Bhutan",
+    "flag": "🇧🇹",
+    "currency": "BTN"
+  },
+  {
+    "country": "Bolivia",
+    "flag": "🇧🇴",
+    "currency": "BOB"
+  },
+  {
+    "country": "Bonaire",
+    "flag": "🇧🇶",
+    "currency": "USD"
+  },
+  {
+    "country": "Bosnia-Herzegovina",
+    "flag": "🇧🇦",
+    "currency": "BAM"
+  },
+  {
+    "country": "Botswana",
+    "flag": "🇧🇼",
+    "currency": "BWP"
+  },
+  {
+    "country": "Bouvet Island",
+    "flag": "🇧🇻",
+    "currency": "NOK"
+  },
+  {
+    "country": "Brazil",
+    "flag": "🇧🇷",
+    "currency": "BRL"
+  },
+  {
+    "country": "British Indian Ocean Territory",
+    "flag": "🇮🇴",
+    "currency": "USD"
+  },
+  {
+    "country": "Brunei Darussalam",
+    "flag": "🇧🇳",
+    "currency": "BND"
+  },
+  {
+    "country": "Bulgaria",
+    "flag": "🇧🇬",
+    "currency": "BGN"
+  },
+  {
+    "country": "Burkina Faso",
+    "flag": "🇧🇫",
+    "currency": "XOF"
+  },
+  {
+    "country": "Burundi",
+    "flag": "🇧🇮",
+    "currency": "BIF"
+  },
+  {
+    "country": "Cambodia",
+    "flag": "🇰🇭",
+    "currency": "KHR"
+  },
+  {
+    "country": "Cameroon",
+    "flag": "🇨🇲",
+    "currency": "XAF"
+  },
+  {
+    "country": "Canada",
+    "flag": "🇨🇦",
+    "currency": "CAD"
+  },
+  {
+    "country": "Cayman Islands",
+    "flag": "🇰🇾",
+    "currency": "KYD"
+  },
+  {
+    "country": "Central African Republic",
+    "flag": "🇨🇫",
+    "currency": "XAF"
+  },
+  {
+    "country": "Chad",
+    "flag": "🇹🇩",
+    "currency": "XAF"
+  },
+  {
+    "country": "Chile",
+    "flag": "🇨🇱",
+    "currency": "CLP"
+  },
+  {
+    "country": "China",
+    "flag": "🇨🇳",
+    "currency": "CNY"
+  },
+  {
+    "country": "Christmas Island",
+    "flag": "🇨🇽",
+    "currency": "AUD"
+  },
+  {
+    "country": "Cocos (Keeling) Islands",
+    "flag": "🇨🇨",
+    "currency": "AUD"
+  },
+  {
+    "country": "Colombia",
+    "flag": "🇨🇴",
+    "currency": "COP"
+  },
+  {
+    "country": "Comoros",
+    "flag": "🇰🇲",
+    "currency": "KMF"
+  },
+  {
+    "country": "Congo-Brazzaville",
+    "flag": "🇨🇬",
+    "currency": "XAF"
+  },
+  {
+    "country": "Cook Islands",
+    "flag": "🇨🇰",
+    "currency": "NZD"
+  },
+  {
+    "country": "Costa Rica",
+    "flag": "🇨🇷",
+    "currency": "CRC"
+  },
+  {
+    "country": "Croatia",
+    "flag": "🇭🇷",
+    "currency": "EUR"
+  },
+  {
+    "country": "Cuba",
+    "flag": "🇨🇺",
+    "currency": "CUP"
+  },
+  {
+    "country": "Curaçao",
+    "flag": "🇨🇼",
+    "currency": "ANG"
+  },
+  {
+    "country": "Cyprus",
+    "flag": "🇨🇾",
+    "currency": "EUR"
+  },
+  {
+    "country": "Czechia",
+    "flag": "🇨🇿",
+    "currency": "CZK"
+  },
+  {
+    "country": "Côte d'Ivoire",
+    "flag": "🇨🇮",
+    "currency": "XOF"
+  },
+  {
+    "country": "Denmark",
+    "flag": "🇩🇰",
+    "currency": "DKK"
+  },
+  {
+    "country": "Djibouti",
+    "flag": "🇩🇯",
+    "currency": "DJF"
+  },
+  {
+    "country": "Dominica",
+    "flag": "🇩🇲",
+    "currency": "XCD"
+  },
+  {
+    "country": "Dominican Republic",
+    "flag": "🇩🇴",
+    "currency": "DOP"
+  },
+  {
+    "country": "Ecuador",
+    "flag": "🇪🇨",
+    "currency": "ECS"
+  },
+  {
+    "country": "Egypt",
+    "flag": "🇪🇬",
+    "currency": "EGP"
+  },
+  {
+    "country": "El Salvador",
+    "flag": "🇸🇻",
+    "currency": "USD"
+  },
+  {
+    "country": "Equatorial Guinea",
+    "flag": "🇬🇶",
+    "currency": "XAF"
+  },
+  {
+    "country": "Eritrea",
+    "flag": "🇪🇷",
+    "currency": "ERN"
+  },
+  {
+    "country": "Estonia",
+    "flag": "🇪🇪",
+    "currency": "EUR"
+  },
+  {
+    "country": "Eswatini",
+    "flag": "🇸🇿",
+    "currency": "SZL"
+  },
+  {
+    "country": "Ethiopia",
+    "flag": "🇪🇹",
+    "currency": "ETB"
+  },
+  {
+    "country": "Falkland Islands",
+    "flag": "🇫🇰",
+    "currency": "FKP"
+  },
+  {
+    "country": "Faroe Islands",
+    "flag": "🇫🇴",
+    "currency": "DKK"
+  },
+  {
+    "country": "Fiji",
+    "flag": "🇫🇯",
+    "currency": "FJD"
+  },
+  {
+    "country": "Finland",
+    "flag": "🇫🇮",
+    "currency": "EUR"
+  },
+  {
+    "country": "France",
+    "flag": "🇫🇷",
+    "currency": "EUR"
+  },
+  {
+    "country": "French Guiana",
+    "flag": "🇬🇫",
+    "currency": "EUR"
+  },
+  {
+    "country": "French Polynesia",
+    "flag": "🇵🇫",
+    "currency": "XPF"
+  },
+  {
+    "country": "French Southern Territories",
+    "flag": "🇹🇫",
+    "currency": "EUR"
+  },
+  {
+    "country": "Gabon",
+    "flag": "🇬🇦",
+    "currency": "XAF"
+  },
+  {
+    "country": "Gambia",
+    "flag": "🇬🇲",
+    "currency": "GMD"
+  },
+  {
+    "country": "Georgia",
+    "flag": "🇬🇪",
+    "currency": "GEL"
+  },
+  {
+    "country": "Germany",
+    "flag": "🇦🇬",
+    "currency": "EUR"
+  },
+  {
+    "country": "Ghana",
+    "flag": "🇬🇭",
+    "currency": "GHS"
+  },
+  {
+    "country": "Gibraltar",
+    "flag": "🇬🇮",
+    "currency": "GIP"
+  },
+  {
+    "country": "Great Britain",
+    "flag": "🇬🇧",
+    "currency": "GBP"
+  },
+  {
+    "country": "Greece",
+    "flag": "🇬🇷",
+    "currency": "EUR"
+  },
+  {
+    "country": "Greenland",
+    "flag": "🇬🇱",
+    "currency": "DKK"
+  },
+  {
+    "country": "Grenada",
+    "flag": "🇬🇩",
+    "currency": "XCD"
+  },
+  {
+    "country": "Guadeloupe",
+    "flag": "🇬🇵",
+    "currency": "EUR"
+  },
+  {
+    "country": "Guam",
+    "flag": "🇬🇺",
+    "currency": "USD"
+  },
+  {
+    "country": "Guatemala",
+    "flag": "🇬🇹",
+    "currency": "GTQ"
+  },
+  {
+    "country": "Guernsey",
+    "flag": "🇬🇬",
+    "currency": "GBP"
+  },
+  {
+    "country": "Guinea",
+    "flag": "🇬🇳",
+    "currency": "GNF"
+  },
+  {
+    "country": "Guinea-Bissau",
+    "flag": "🇬🇼",
+    "currency": "XOF"
+  },
+  {
+    "country": "Guyana",
+    "flag": "🇬🇾",
+    "currency": "GYD"
+  },
+  {
+    "country": "Haiti",
+    "flag": "🇭🇹",
+    "currency": "HTG"
+  },
+  {
+    "country": "Holy See",
+    "flag": "🇻🇦",
+    "currency": "EUR"
+  },
+  {
+    "country": "Honduras",
+    "flag": "🇭🇳",
+    "currency": "HNL"
+  },
+  {
+    "country": "Hong Kong",
+    "flag": "🇭🇰",
+    "currency": "HKD"
+  },
+  {
+    "country": "Hungary",
+    "flag": "🇭🇺",
+    "currency": "HUF"
+  },
+  {
+    "country": "Iceland",
+    "flag": "🇮🇸",
+    "currency": "ISK"
+  },
+  {
+    "country": "India",
+    "flag": "🇮🇳",
+    "currency": "INR"
+  },
+  {
+    "country": "Indonesia",
+    "flag": "🇮🇩",
+    "currency": "IDR"
+  },
+  {
+    "country": "Iran",
+    "flag": "🇮🇷",
+    "currency": "IRR"
+  },
+  {
+    "country": "Iraq",
+    "flag": "🇮🇶",
+    "currency": "IQD"
+  },
+  {
+    "country": "Ireland",
+    "flag": "🇮🇪",
+    "currency": "EUR"
+  },
+  {
+    "country": "Isle of Man",
+    "flag": "🇮🇲",
+    "currency": "GBP"
+  },
+  {
+    "country": "Israel",
+    "flag": "🇮🇱",
+    "currency": "ILS"
+  },
+  {
+    "country": "Italy",
+    "flag": "🇮🇹",
+    "currency": "EUR"
+  },
+  {
+    "country": "Jamaica",
+    "flag": "🇯🇲",
+    "currency": "JMD"
+  },
+  {
+    "country": "Jan Mayen",
+    "flag": "🇸🇯",
+    "currency": "NOK"
+  },
+  {
+    "country": "Japan",
+    "flag": "🇯🇵",
+    "currency": "JPY"
+  },
+  {
+    "country": "Jersey",
+    "flag": "🇯🇪",
+    "currency": "GBP"
+  },
+  {
+    "country": "Jordan",
+    "flag": "🇯🇴",
+    "currency": "JOD"
+  },
+  {
+    "country": "Kazakhstan",
+    "flag": "🇰🇿",
+    "currency": "KZT"
+  },
+  {
+    "country": "Kenya",
+    "flag": "🇰🇪",
+    "currency": "KES"
+  },
+  {
+    "country": "Kiribati",
+    "flag": "🇰🇮",
+    "currency": "AUD"
+  },
+  {
+    "country": "North Korea",
+    "flag": "🇰🇵",
+    "currency": "KPW"
+  },
+  {
+    "country": "South Korea",
+    "flag": "🇰🇷",
+    "currency": "KRW"
+  },
+  {
+    "country": "Kuwait",
+    "flag": "🇰🇼",
+    "currency": "KWD"
+  },
+  {
+    "country": "Kyrgyzstan",
+    "flag": "🇰🇬",
+    "currency": "KGS"
+  },
+  {
+    "country": "Laos",
+    "flag": "🇱🇦",
+    "currency": "LAK"
+  },
+  {
+    "country": "Latvia",
+    "flag": "🇱🇻",
+    "currency": "EUR"
+  },
+  {
+    "country": "Lebanon",
+    "flag": "🇱🇧",
+    "currency": "LBP"
+  },
+  {
+    "country": "Lesotho",
+    "flag": "🇱🇸",
+    "currency": "LSL"
+  },
+  {
+    "country": "Liberia",
+    "flag": "🇱🇷",
+    "currency": "LRD"
+  },
+  {
+    "country": "Libya",
+    "flag": "🇱🇾",
+    "currency": "LYD"
+  },
+  {
+    "country": "Liechtenstein",
+    "flag": "🇱🇮",
+    "currency": "CHF"
+  },
+  {
+    "country": "Lithuania",
+    "flag": "🇱🇹",
+    "currency": "EUR"
+  },
+  {
+    "country": "Luxembourg",
+    "flag": "🇱🇺",
+    "currency": "EUR"
+  },
+  {
+    "country": "Macao",
+    "flag": "🇲🇴",
+    "currency": "MOP"
+  },
+  {
+    "country": "North Macedonia",
+    "flag": "🇲🇰",
+    "currency": "MKD"
+  },
+  {
+    "country": "Madagascar",
+    "flag": "🇲🇬",
+    "currency": "MGA"
+  },
+  {
+    "country": "Malawi",
+    "flag": "🇲🇼",
+    "currency": "MWK"
+  },
+  {
+    "country": "Malaysia",
+    "flag": "🇲🇾",
+    "currency": "MYR"
+  },
+  {
+    "country": "Maldives",
+    "flag": "🇲🇻",
+    "currency": "MVR"
+  },
+  {
+    "country": "Mali",
+    "flag": "🇲🇱",
+    "currency": "XOF"
+  },
+  {
+    "country": "Malta",
+    "flag": "🇲🇹",
+    "currency": "EUR"
+  },
+  {
+    "country": "Marshall Islands",
+    "flag": "🇲🇭",
+    "currency": "USD"
+  },
+  {
+    "country": "Martinique",
+    "flag": "🇲🇶",
+    "currency": "EUR"
+  },
+  {
+    "country": "Mauritania",
+    "flag": "🇲🇷",
+    "currency": "MRU"
+  },
+  {
+    "country": "Mauritius",
+    "flag": "🇲🇺",
+    "currency": "MUR"
+  },
+  {
+    "country": "Mayotte",
+    "flag": "🇾🇹",
+    "currency": "EUR"
+  },
+  {
+    "country": "Mexico",
+    "flag": "🇲🇽",
+    "currency": "MXN"
+  },
+  {
+    "country": "Micronesia",
+    "flag": "🇫🇲",
+    "currency": "USD"
+  },
+  {
+    "country": "Moldova",
+    "flag": "🇲🇩",
+    "currency": "MDL"
+  },
+  {
+    "country": "Monaco",
+    "flag": "🇲🇨",
+    "currency": "EUR"
+  },
+  {
+    "country": "Mongolia",
+    "flag": "🇲🇳",
+    "currency": "MNT"
+  },
+  {
+    "country": "Montenegro",
+    "flag": "🇲🇪",
+    "currency": "EUR"
+  },
+  {
+    "country": "Montserrat",
+    "flag": "🇲🇸",
+    "currency": "XCD"
+  },
+  {
+    "country": "Morocco",
+    "flag": "🇲🇦",
+    "currency": "MAD"
+  },
+  {
+    "country": "Mozambique",
+    "flag": "🇲🇿",
+    "currency": "MZN"
+  },
+  {
+    "country": "Myanmar",
+    "flag": "🇲🇲",
+    "currency": "MMK"
+  },
+  {
+    "country": "Namibia",
+    "flag": "🇳🇦",
+    "currency": "NAD"
+  },
+  {
+    "country": "Nauru",
+    "flag": "🇳🇷",
+    "currency": "AUD"
+  },
+  {
+    "country": "Nepal",
+    "flag": "🇳🇵",
+    "currency": "NPR"
+  },
+  {
+    "country": "Netherlands",
+    "flag": "🇳🇱",
+    "currency": "EUR"
+  },
+  {
+    "country": "New Caledonia",
+    "flag": "🇳🇨",
+    "currency": "XPF"
+  },
+  {
+    "country": "New Zealand",
+    "flag": "🇳🇿",
+    "currency": "NZD"
+  },
+  {
+    "country": "Nicaragua",
+    "flag": "🇳🇮",
+    "currency": "NIO"
+  },
+  {
+    "country": "Niger",
+    "flag": "🇳🇪",
+    "currency": "XOF"
+  },
+  {
+    "country": "Nigeria",
+    "flag": "🇳🇬",
+    "currency": "NGN"
+  },
+  {
+    "country": "Niue",
+    "flag": "🇳🇺",
+    "currency": "NZD"
+  },
+  {
+    "country": "Norfolk Island",
+    "flag": "🇳🇫",
+    "currency": "AUD"
+  },
+  {
+    "country": "Northern Ireland",
+    "flag": "🏴󠁧󠁢󠁮󠁩󠁲󠁿",
+    "currency": "GBP"
+  },
+  {
+    "country": "Northern Mariana Islands",
+    "flag": "🇲🇵",
+    "currency": "USD"
+  },
+  {
+    "country": "Norway",
+    "flag": "🇳🇴",
+    "currency": "NOK"
+  },
+  {
+    "country": "Oman",
+    "flag": "🇴🇲",
+    "currency": "OMR"
+  },
+  {
+    "country": "Pakistan",
+    "flag": "🇵🇰",
+    "currency": "PKR"
+  },
+  {
+    "country": "Palau",
+    "flag": "🇵🇼",
+    "currency": "USD"
+  },
+  {
+    "country": "Palestine",
+    "flag": "🇵🇸",
+    "currency": "ILS"
+  },
+  {
+    "country": "Panama",
+    "flag": "🇵🇦",
+    "currency": "PAB"
+  },
+  {
+    "country": "Papua New Guinea",
+    "flag": "🇵🇬",
+    "currency": "PGK"
+  },
+  {
+    "country": "Paraguay",
+    "flag": "🇵🇾",
+    "currency": "PYG"
+  },
+  {
+    "country": "Peru",
+    "flag": "🇵🇪",
+    "currency": "PEN"
+  },
+  {
+    "country": "Philippines",
+    "flag": "🇦🇬",
+    "currency": "PHP"
+  },
+  {
+    "country": "Poland",
+    "flag": "🇵🇱",
+    "currency": "PLN"
+  },
+  {
+    "country": "Portugal",
+    "flag": "🇵🇹",
+    "currency": "EUR"
+  },
+  {
+    "country": "Puerto Rico",
+    "flag": "🇵🇷",
+    "currency": "USD"
+  },
+  {
+    "country": "Qatar",
+    "flag": "🇶🇦",
+    "currency": "QAR"
+  },
+  {
+    "country": "Réunion",
+    "flag": "🇷🇪",
+    "currency": "EUR"
+  },
+  {
+    "country": "Romania",
+    "flag": "🇷🇴",
+    "currency": "RON"
+  },
+  {
+    "country": "Russia",
+    "flag": "🇷🇺",
+    "currency": "RUB"
+  },
+  {
+    "country": "Rwanda",
+    "flag": "🇷🇼",
+    "currency": "RWF"
+  },
+  {
+    "country": "Saint Barthélemy",
+    "flag": "🇧🇱",
+    "currency": "EUR"
+  },
+  {
+    "country": "Saint Kitts and Nevis",
+    "flag": "🇰🇳",
+    "currency": "XCD"
+  },
+  {
+    "country": "Saint Lucia",
+    "flag": "🇱🇨",
+    "currency": "XCD"
+  },
+  {
+    "country": "Saint Vincent and the Grenadines",
+    "flag": "🇻🇨",
+    "currency": "XCD"
+  },
+  {
+    "country": "Samoa",
+    "flag": "🇼🇸",
+    "currency": "WST"
+  },
+  {
+    "country": "San Marino",
+    "flag": "🇸🇲",
+    "currency": "EUR"
+  },
+  {
+    "country": "Sao Tome and Principe",
+    "flag": "🇸🇹",
+    "currency": "STN"
+  },
+  {
+    "country": "Saudi Arabia",
+    "flag": "🇸🇦",
+    "currency": "SAR"
+  },
+  {
+    "country": "Scotland",
+    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "currency": "GBP"
+  },
+  {
+    "country": "Senegal",
+    "flag": "🇸🇳",
+    "currency": "XOF"
+  },
+  {
+    "country": "Serbia",
+    "flag": "🇷🇸",
+    "currency": "RSD"
+  },
+  {
+    "country": "Seychelles",
+    "flag": "🇸🇨",
+    "currency": "SCR"
+  },
+  {
+    "country": "Sierra Leone",
+    "flag": "🇸🇱",
+    "currency": "SLE"
+  },
+  {
+    "country": "Singapore",
+    "flag": "🇸🇬",
+    "currency": "SGD"
+  },
+  {
+    "country": "Sint Maarten",
+    "flag": "🇸🇽",
+    "currency": "ANG"
+  },
+  {
+    "country": "Slovakia",
+    "flag": "🇸🇰",
+    "currency": "EUR"
+  },
+  {
+    "country": "Slovenia",
+    "flag": "🇸🇮",
+    "currency": "EUR"
+  },
+  {
+    "country": "Solomon Islands",
+    "flag": "🇸🇧",
+    "currency": "SBD"
+  },
+  {
+    "country": "Somalia",
+    "flag": "🇸🇴",
+    "currency": "SOS"
+  },
+  {
+    "country": "South Africa",
+    "flag": "🇿🇦",
+    "currency": "ZAR"
+  },
+  {
+    "country": "South Georgia and the South Sandwich Islands",
+    "flag": "🇬🇸",
+    "currency": "GBP"
+  },
+  {
+    "country": "Somalia",
+    "flag": "🇸🇴",
+    "currency": "SOS"
+  },
+  {
+    "country": "South Sudan",
+    "flag": "🇸🇸",
+    "currency": "SSP"
+  },
+  {
+    "country": "Spain",
+    "flag": "🇪🇸",
+    "currency": "EUR"
+  },
+  {
+    "country": "Sri Lanka",
+    "flag": "🇱🇰",
+    "currency": "LKR"
+  },
+  {
+    "country": "Sudan",
+    "flag": "🇸🇩",
+    "currency": "SDG"
+  },
+  {
+    "country": "Suriname",
+    "flag": "🇸🇷",
+    "currency": "SRD"
+  },
+  {
+    "country": "Sweden",
+    "flag": "🇸🇪",
+    "currency": "SEK"
+  },
+  {
+    "country": "Switzerland",
+    "flag": "🇨🇭",
+    "currency": "CHF"
+  },
+  {
+    "country": "Syria",
+    "flag": "🇸🇾",
+    "currency": "SYP"
+  },
+  {
+    "country": "Taiwan",
+    "flag": "🇹🇼",
+    "currency": "TWD"
+  },
+  {
+    "country": "Tajikistan",
+    "flag": "🇹🇯",
+    "currency": "TJS"
+  },
+  {
+    "country": "Tanzania",
+    "flag": "🇹🇿",
+    "currency": "TZS"
+  },
+  {
+    "country": "Thailand",
+    "flag": "🇹🇭",
+    "currency": "THB"
+  },
+  {
+    "country": "Timor-Leste",
+    "flag": "🇹🇱",
+    "currency": "USD"
+  },
+  {
+    "country": "Togo",
+    "flag": "🇹🇬",
+    "currency": "XOF"
+  },
+  {
+    "country": "Tokelau",
+    "flag": "🇹🇰",
+    "currency": "NZD"
+  },
+  {
+    "country": "Tonga",
+    "flag": "🇹🇴",
+    "currency": "TOP"
+  },
+  {
+    "country": "Trinidad and Tobago",
+    "flag": "🇹🇹",
+    "currency": "TTD"
+  },
+  {
+    "country": "Tunisia",
+    "flag": "🇹🇳",
+    "currency": "TND"
+  },
+  {
+    "country": "Turkey",
+    "flag": "🇹🇷",
+    "currency": "TRY"
+  },
+  {
+    "country": "Turkmenistan",
+    "flag": "🇹🇲",
+    "currency": "TMT"
+  },
+  {
+    "country": "Turks and Caicos Islands",
+    "flag": "🇹🇨",
+    "currency": "USD"
+  },
+  {
+    "country": "Tuvalu",
+    "flag": "🇹🇻",
+    "currency": "AUD"
+  },
+  {
+    "country": "Uganda",
+    "flag": "🇺🇬",
+    "currency": "UGX"
+  },
+  {
+    "country": "Ukraine",
+    "flag": "🇺🇦",
+    "currency": "UAH"
+  },
+  {
+    "country": "United Arab Emirates",
+    "flag": "🇦🇪",
+    "currency": "AED"
+  },
+  {
+    "country": "United States of America",
+    "flag": "🇺🇸",
+    "currency": "USD"
+  },
+  {
+    "country": "United States Virgin Islands",
+    "flag": "🇻🇮",
+    "currency": "USD"
+  },
+  {
+    "country": "Uruguay",
+    "flag": "🇺🇾",
+    "currency": "UYU"
+  },
+  {
+    "country": "Uzbekistan",
+    "flag": "🇺🇿",
+    "currency": "UZS"
+  },
+  {
+    "country": "Vanuatu",
+    "flag": "🇻🇺",
+    "currency": "VUV"
+  },
+  {
+    "country": "Vatican City",
+    "flag": "🇻🇦",
+    "currency": "EUR"
+  },
+  {
+    "country": "Venezuela",
+    "flag": "🇻🇪",
+    "currency": "VES"
+  },
+  {
+    "country": "Vietnam",
+    "flag": "🇻🇳",
+    "currency": "VND"
+  },
+  {
+    "country": "Wales",
+    "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+    "currency": "GBP"
+  },
+  {
+    "country": "Wallis and Futuna",
+    "flag": "🇼🇫",
+    "currency": "XPF"
+  },
+  {
+    "country": "Western Sahara",
+    "flag": "🇪🇭",
+    "currency": "MAD"
+  },
+  {
+    "country": "Yemen",
+    "flag": "🇾🇪",
+    "currency": "YER"
+  },
+  {
+    "country": "Zambia",
+    "flag": "🇿🇲",
+    "currency": "ZMW"
+  },
+  {
+    "country": "Zimbabwe",
+    "flag": "🇿🇼",
+    "currency": "USD"
+  }
+]

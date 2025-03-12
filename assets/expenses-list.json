@@ -1,0 +1,50 @@
+[
+  {
+    "name": "rent",
+    "emoji": "🏠"
+  },
+  {
+    "name": "flies",
+    "emoji": "✈️"
+  },
+  {
+    "name": "food",
+    "emoji": "🍲"
+  },
+  {
+    "name": "groceries",
+    "emoji": "🛒"
+  },
+  {
+    "name": "cafe",
+    "emoji": "🧂"
+  },
+  {
+    "name": "taxi",
+    "emoji": "🚕"
+  },
+  {
+    "name": "entertainment",
+    "emoji": "🎉"
+  },
+  {
+    "name": "metro",
+    "emoji": "🚇"
+  },
+  {
+    "name": "souvenirs",
+    "emoji": "🎐"
+  },
+  {
+    "name": "insurance",
+    "emoji": "📝"
+  },
+  {
+    "name": "clothes",
+    "emoji": "🛍️"
+  },
+  {
+    "name": "electronics",
+    "emoji": "💻"
+  }
+]
