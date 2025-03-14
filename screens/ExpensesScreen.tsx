@@ -4,7 +4,6 @@ import {
   View,
   Pressable,
   Text,
-  Image,
   SectionList,
 } from "react-native";
 import useExpenses, {
@@ -30,6 +29,7 @@ import StatisticButton from "./components/StatisticButton";
 import { getCurrentMonth } from "../utils/getCurrentMonth";
 import BottomActionBar from "./components/BottomActionBar";
 import { useDisclose } from "native-base";
+import EmptyExpensesState from "./components/expenses/EmptyExpensesState";
 
 export default function ExpensesScreen() {
   const [expenseFilter, setExpenseFilter] = useState<UseExpensesFilter>({});
@@ -112,43 +112,44 @@ export default function ExpensesScreen() {
           />
         </LinearGradient>
       </View>
-      {expenses && expenses.length === 0 && (
-        <Image
-          source={require("../icons/instruction.png")}
-          style={styles.instruction}
+
+      {expenses && expenses.length === 0 ? (
+        <View style={styles.emptyStateContainer}>
+          <EmptyExpensesState />
+        </View>
+      ) : (
+        <SectionList
+          sections={sections}
+          renderItem={({ item: expense }) => (
+            <GestureHandlerRootView key={expense.id}>
+              <Swipeable renderRightActions={() => rightSwipeActions(expense.id)}>
+                <ExpensePlate
+                  key={expense.id}
+                  amount={formatNumber(expense.amount / 100)}
+                  amountInHomeCurrency={formatNumber(
+                    Number((expense.amount_in_home_currency / 100).toFixed(2))
+                  )}
+                  currentCountryFlag={expense.flag}
+                  currentCountryCurrency={expense.selected_currency}
+                  homeCurrency={expense.home_currency}
+                  expenseType={stringToExpenseTypeSafe(expense.expense_types)}
+                  date={new Date(+expense.date * 1000).toDateString()}
+                />
+              </Swipeable>
+            </GestureHandlerRootView>
+          )}
+          renderSectionHeader={({ section: { title, total } }) => (
+            <Text style={styles.dateHeader}>
+              {title} - Total Spent:{" "}
+              {formatNumber(Number((total / 100).toFixed(2)))}{" "}
+              {homeCountry?.currency}
+            </Text>
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          stickySectionHeadersEnabled
+          contentContainerStyle={styles.sectionListContent}
         />
       )}
-      <SectionList
-        sections={sections}
-        renderItem={({ item: expense }) => (
-          <GestureHandlerRootView key={expense.id}>
-            <Swipeable renderRightActions={() => rightSwipeActions(expense.id)}>
-              <ExpensePlate
-                key={expense.id}
-                amount={formatNumber(expense.amount / 100)}
-                amountInHomeCurrency={formatNumber(
-                  Number((expense.amount_in_home_currency / 100).toFixed(2))
-                )}
-                currentCountryFlag={expense.flag}
-                currentCountryCurrency={expense.selected_currency}
-                homeCurrency={expense.home_currency}
-                expenseType={stringToExpenseTypeSafe(expense.expense_types)}
-                date={new Date(+expense.date * 1000).toDateString()}
-              />
-            </Swipeable>
-          </GestureHandlerRootView>
-        )}
-        renderSectionHeader={({ section: { title, total } }) => (
-          <Text style={styles.dateHeader}>
-            {title} - Total Spent:{" "}
-            {formatNumber(Number((total / 100).toFixed(2)))}{" "}
-            {homeCountry?.currency}
-          </Text>
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        stickySectionHeadersEnabled
-        contentContainerStyle={styles.sectionListContent}
-      />
       
       {/* Regular BlueButton with its UI hidden */}
       <BlueButton 
@@ -192,12 +193,6 @@ function stringToCurrency({
 const styles = StyleSheet.create({
   arrowBox: {
     flexDirection: "row",
-  },
-  instruction: {
-    width: 250,
-    height: 250,
-    alignSelf: "center",
-    marginTop: 100,
   },
   button: {
     backgroundColor: "#1C1D1F",
@@ -263,6 +258,10 @@ const styles = StyleSheet.create({
   },
   sectionListContent: {
     paddingBottom: 80,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    position: 'relative',
   },
 });
 
