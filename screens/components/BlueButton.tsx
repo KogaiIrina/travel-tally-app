@@ -226,12 +226,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#2C65E1",
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
     marginBottom: 24,
     width: 64,
     height: 64,
     borderRadius: 40,
-    padding: 8,
+    alignSelf: "center",
   },
 });
 

@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 60,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   sideContainer: {
     flex: 1,
@@ -77,9 +77,12 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   centerContainer: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1,
   },
   addButton: {
     width: 60,
