@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Dimensions } from "react-native";
 import { Actionsheet, Button, useDisclose } from "native-base";
 import useCountries from "../../../db/hooks/useCountries";
 import useHomeCountry, {
   useHomeCountryMutation,
 } from "../../../db/hooks/useHomeCountry";
-import RNPickerSelect from "react-native-picker-select";
 import YellowButton from "../YellowButton";
+import CustomDropdown from "../CustomDropdown";
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomeCurrencyButton() {
   const { data: countries } = useCountries();
@@ -41,13 +43,17 @@ export default function HomeCurrencyButton() {
     onClose();
   }, [homeCountryUpdateFailed, homeCountryUpdated]);
 
-  const currencyList = useMemo(() => {
+  const dropdownItems = useMemo(() => {
     return (countries || []).map(({ country, currency, id }) => ({
+      id,
       label: `${country}, ${currency}`,
       value: id,
-      key: id,
     }));
   }, [countries]);
+
+  const selectedCountry = countries?.find(
+    ({ id }) => id === (selectedCountryId || homeCountry?.id)
+  );
 
   return (
     <>
@@ -56,20 +62,20 @@ export default function HomeCurrencyButton() {
           <Text style={styles.buttonText}>Home Country</Text>
         </Button>
         <Actionsheet isOpen={isOpen} onClose={onClose}>
-          <Actionsheet.Content>
-            <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
+          <Actionsheet.Content style={styles.actionsheetContent}>
+            <Actionsheet.Item style={styles.actionsheetItem}>
               <View style={styles.container}>
                 <Text style={styles.text}>Home Currency</Text>
-                <View style={styles.selectorGroup}>
-                  <Button style={styles.button}>{"💰"}</Button>
-                  <View style={styles.selector}>
-                    <RNPickerSelect
-                      placeholder={{ label: "Choose Home Currency" }}
-                      onValueChange={setSelectedCountryId}
-                      value={selectedCountryId || homeCountry?.id}
-                      items={currencyList}
-                    />
-                  </View>
+                <View style={styles.dropdownWrapper}>
+                  <CustomDropdown
+                    items={dropdownItems}
+                    selectedValue={selectedCountryId || homeCountry?.id}
+                    onValueChange={(value) => setSelectedCountryId(value)}
+                    placeholder="Choose Home Currency"
+                    leftIcon={<Text style={styles.iconText}>{selectedCountry?.flag || "💰"}</Text>}
+                    width={SCREEN_WIDTH * 0.85}
+                    showIcons={false}
+                  />
                 </View>
                 <YellowButton
                   disabled={updatingHomeCountry}
@@ -97,39 +103,26 @@ const styles = StyleSheet.create({
   },
   container: {
     alignItems: "center",
-    height: 200,
     width: 350,
     backgroundColor: "transparent",
+    paddingVertical: 20,
   },
-  selectorGroup: {
-    flexDirection: "row",
-    alignSelf: "center",
-    height: "25%",
+  actionsheetContent: {
     width: "100%",
-    marginTop: 20,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderRadius: 10,
-    borderColor: "#C3C5F3",
-  },
-  button: {
-    height: "100%",
-    width: 56,
-    backgroundColor: "#F3F6FF",
-    borderColor: "#C3C5F3",
-    borderWidth: 0.3,
-    borderTopLeftRadius: 7,
-    borderBottomLeftRadius: 7,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  selector: {
-    backgroundColor: "#fff",
     alignItems: "center",
-    justifyContent: "center",
-    width: "81%",
-    borderRadius: 10,
-    borderColor: "#C3C5F3",
+  },
+  actionsheetItem: {
+    backgroundColor: "transparent",
+    width: "100%",
+    alignItems: "center",
+  },
+  dropdownWrapper: {
+    width: "100%",
+    marginVertical: 20,
+    alignItems: "center",
+  },
+  iconText: {
+    fontSize: 18,
   },
   text: {
     fontWeight: "600",

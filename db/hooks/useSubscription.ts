@@ -37,11 +37,21 @@ export const usePurchasePackage = () => {
 
   return useMutation(async (pack: PurchasesPackage) => {
     if (!purchasePackage) {
+      console.error("RevenueCat context is not initialized");
       throw new Error("unexpected: revenue cat context is not initialized");
     }
-    await purchasePackage(pack);
-    queryClient.invalidateQueries(SUBSCRIPTION_STATUS_QUERY_KEY);
-    const status = await checkSubscriptionStatus();
-    return status;
+    
+    try {
+      await purchasePackage(pack);
+      
+      queryClient.invalidateQueries(SUBSCRIPTION_STATUS_QUERY_KEY);
+      
+      const status = await checkSubscriptionStatus();
+      
+      return status;
+    } catch (error) {
+      console.error("Error during purchase process:", error);
+      throw error;
+    }
   });
 };

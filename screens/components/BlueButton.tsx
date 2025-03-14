@@ -1,5 +1,15 @@
-import React, { useState } from "react";
-import { Alert, Dimensions, StyleSheet, Pressable, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { 
+  Alert, 
+  Dimensions, 
+  StyleSheet, 
+  Pressable, 
+  View, 
+  Platform, 
+  Keyboard, 
+  ScrollView,
+  KeyboardAvoidingView
+} from "react-native";
 import { Actionsheet, Box, useDisclose } from "native-base";
 import PlusIcon from "./expenses/icons/plus";
 import ExpensesContainer from "./expenses/ExpensesContainer";
@@ -30,6 +40,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const [selectedCurrency] = useSetting<string>("selectedCurrency");
   const { mutate: addExpense, isLoading: isSavingExpense } = useAddExpense();
   const [activeExpenseTypeKey, setActiveExpenseTypeKey] = useState<string>();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const isoDate = date.toISOString().split("T")[0];
 
@@ -43,6 +54,35 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     // Reset form state when closing
     setActiveExpenseTypeKey("");
   });
+
+  // Handle keyboard events
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, []);
+
+  // Dismiss keyboard when closing the actionsheet
+  useEffect(() => {
+    if (!isOpen) {
+      Keyboard.dismiss();
+    }
+  }, [isOpen]);
 
   let isActive =
     homeCountry &&
@@ -136,23 +176,36 @@ const BlueButton: React.FC<BlueButtonProps> = ({
         </Pressable>
       )}
       <Actionsheet isOpen={isOpen} onClose={onClose}>
-        <Actionsheet.Content maxHeight={"90%"} marginTop={marginTop}>
-          <Box>
-            <NewInputView
-              onChange={setAmountOfSpending}
-              setDate={setDate}
-              amount={sum}
-              changeAmount={changeSum}
-            />
-            <View style={{ flex: 1 }}>
-              <CountrySelector />
-              <Box marginTop={5} flex={1}>
-                <ExpensesContainer
-                  setExpenseType={setExpenseType}
-                  activeExpenseTypeKey={activeExpenseTypeKey}
-                  setActiveExpenseTypeKey={setActiveExpenseTypeKey}
-                />
-              </Box>
+        <Actionsheet.Content maxHeight={"100%"} marginTop={marginTop}>
+          <KeyboardAvoidingView 
+            style={{ width: "100%", height: "100%" }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+          >
+            <ScrollView 
+              style={{ width: "100%" }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 80 }}
+            >
+              <NewInputView
+                onChange={setAmountOfSpending}
+                setDate={setDate}
+                amount={sum}
+                changeAmount={changeSum}
+              />
+              <View style={{ flex: 1 }}>
+                <CountrySelector />
+                <Box marginTop={5} flex={1}>
+                  <ExpensesContainer
+                    setExpenseType={setExpenseType}
+                    activeExpenseTypeKey={activeExpenseTypeKey}
+                    setActiveExpenseTypeKey={setActiveExpenseTypeKey}
+                  />
+                </Box>
+              </View>
+            </ScrollView>   
+            {!keyboardVisible && (
               <Box marginY={5}>
                 <BigBlueButton
                   onPress={saveTransaction}
@@ -160,8 +213,8 @@ const BlueButton: React.FC<BlueButtonProps> = ({
                   text="SAVE"
                 />
               </Box>
-            </View>
-          </Box>
+            )}
+          </KeyboardAvoidingView>
         </Actionsheet.Content>
       </Actionsheet>
     </>

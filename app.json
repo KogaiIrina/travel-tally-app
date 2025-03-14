@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ikogai.traveltally",
@@ -20,6 +22,7 @@
     "android": {
       "supportsTablet": false,
       "versionCode": 14,
+      "android":{"softwareKeyboardLayoutMode": "pan"},
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
@@ -41,6 +44,11 @@
         }
       ]
     ],
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "bd4cc531-e8bc-4b50-85ea-cbfd5870cb95"
+      }
+    }
   }
 }

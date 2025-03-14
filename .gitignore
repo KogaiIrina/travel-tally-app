@@ -37,3 +37,7 @@ yarn-error.*
 
 # build files
 travel-tally-build.json
+
+#build
+android/
+ios/
