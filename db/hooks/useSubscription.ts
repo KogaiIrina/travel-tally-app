@@ -41,19 +41,12 @@ export const usePurchasePackage = () => {
       throw new Error("unexpected: revenue cat context is not initialized");
     }
     
-    console.log(`Starting purchase for package: ${pack.identifier}`);
-    
     try {
-      console.log("Calling RevenueCat purchasePackage");
       await purchasePackage(pack);
-      console.log("Purchase completed successfully");
       
-      console.log("Invalidating subscription status queries");
       queryClient.invalidateQueries(SUBSCRIPTION_STATUS_QUERY_KEY);
       
-      console.log("Checking subscription status");
       const status = await checkSubscriptionStatus();
-      console.log(`Subscription status: ${JSON.stringify(status)}`);
       
       return status;
     } catch (error) {
