@@ -11,6 +11,7 @@ import {
   RevenueCatProvider,
 } from "./utils/RevenueCatProvider";
 import useSubscription from "./db/hooks/useSubscription";
+import { updateSubscriptionCache } from "./utils/useSubscriptionStatus";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +41,23 @@ function Providers({ children }: { children: React.ReactNode }) {
 function Entrypoint() {
   const [loading, setLoading] = useState(true);
   const { data: dbSubscription, isLoading } = useSubscription();
+
+  // Check subscription status on app start
+  useEffect(() => {
+    const checkStatus = async () => {
+      if (Platform.OS === "ios") {
+        try {
+          const { hasSubscription } = await checkSubscriptionStatus();
+          // Update the subscription cache
+          updateSubscriptionCache(hasSubscription);
+        } catch (error) {
+          console.error("Error checking subscription status:", error);
+        }
+      }
+    };
+    
+    checkStatus();
+  }, []);
 
   useEffect(() => {
     const initializeDatabase = async () => {
@@ -135,7 +153,6 @@ function Entrypoint() {
     </>
   );
 }
-
 export default function App() {
   return (
     <Providers>
@@ -143,3 +160,4 @@ export default function App() {
     </Providers>
   );
 }
+

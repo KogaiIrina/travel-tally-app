@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Pressable, Text, View } from "react-native";
+import { StyleSheet, Pressable, Text, View, Dimensions } from "react-native";
 import { Actionsheet, Box, Button, IconButton, useDisclose } from "native-base";
 import useCountries from "../../../db/hooks/useCountries";
 import FilterIcon from "./icons/filter";
@@ -10,6 +10,9 @@ import { SmallWhiteButton, SmallYellowButton } from "../smallButton";
 import { UseExpensesFilter } from "../../../db/hooks/useExpenses";
 import useMonths from "../../../db/hooks/useMonths";
 import { BetterPickerSelect } from "../BetterPickerSelect";
+import CustomDropdown from "../CustomDropdown";
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface FilterButtonProps {
   onSave: (expenseFilter: UseExpensesFilter) => void;
@@ -52,6 +55,7 @@ export default function ExpensesFilterButton({
       (countries || []).map(({ country, id }) => ({
         label: `${country}`,
         value: id.toString(),
+        id: id,
         key: id,
       })),
     [countries]
@@ -85,17 +89,20 @@ export default function ExpensesFilterButton({
       return [];
     }
 
-    return months.map((text) => ({
+    return months.map((text, index) => ({
       label: `${text}`,
       value: text,
       text: text,
+      id: index,
+      key: index,
     }));
   }, [months]);
 
   const expensesList = useMemo(() => {
-    return (expensesArray || []).map(({ key, text }) => ({
+    return (expensesArray || []).map(({ key, text }, index) => ({
       label: `${text}`,
       value: key,
+      id: index,
       key: key,
     }));
   }, [expensesArray]);
@@ -117,65 +124,43 @@ export default function ExpensesFilterButton({
           </Box>
           <View style={styles.selectorsBox}>
             <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
-              <View style={styles.selectorGroup}>
-                <Button style={styles.selectorButton}>{"🧭"}</Button>
-                <View style={styles.selector}>
-                  <BetterPickerSelect
-                    placeholder={{
-                      label: "Choose Country",
-                      value: "no-country",
-                    }}
-                    value={
-                      selectedCountryId
-                        ? selectedCountryId.toString()
-                        : "no-country"
-                    }
-                    onValueChange={(value) =>
-                      setSelectedCountryId(
-                        value === "no-country" ? undefined : Number(value)
-                      )
-                    }
-                    items={countryList}
-                  />
-                </View>
-              </View>
+              <CustomDropdown
+                items={countryList}
+                selectedValue={selectedCountryId}
+                placeholder="Choose Country"
+                showIcons={false}
+                leftIcon={<Text>🧭</Text>}
+                width={SCREEN_WIDTH * 0.85}
+                onValueChange={(value) =>
+                  setSelectedCountryId(value === "no-country" ? undefined : Number(value))
+                }
+              />
             </Actionsheet.Item>
             <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
-              <View style={styles.selectorGroup}>
-                <IconButton style={styles.selectorButton}>
-                  <ExpensesCategoryIcon />
-                </IconButton>
-                <View style={styles.selector}>
-                  <BetterPickerSelect
-                    placeholder={{
-                      label: "Choose Category",
-                      value: "no-category",
-                    }}
-                    onValueChange={(value) =>
-                      setSelectedCategory(value === "no-category" ? "" : value)
-                    }
-                    value={selectedCategory}
-                    items={expensesList}
-                  />
-                </View>
-              </View>
+              <CustomDropdown
+                items={expensesList}
+                selectedValue={selectedCategory}
+                placeholder="Choose Category"
+                showIcons={false}
+                leftIcon={<Text>🛍</Text>}
+                width={SCREEN_WIDTH * 0.85}
+                onValueChange={(value) =>
+                  setSelectedCategory(value === "no-category" ? "" : value)
+                }
+              />
             </Actionsheet.Item>
             <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
-              <View style={styles.selectorGroup}>
-                <IconButton style={styles.selectorButton}>
-                  <CalendarIcon />
-                </IconButton>
-                <View style={styles.selector}>
-                  <BetterPickerSelect
-                    placeholder={{ label: "Choose Month", value: "no-country" }}
-                    onValueChange={(value) =>
-                      setSelectedMonth(value === "no-country" ? "" : value)
-                    }
-                    value={selectedMonth}
-                    items={monthsList}
-                  />
-                </View>
-              </View>
+              <CustomDropdown
+                items={monthsList}
+                selectedValue={selectedMonth}
+                placeholder="Choose Month"
+                showIcons={false}
+                leftIcon={<Text>📅</Text>}
+                width={SCREEN_WIDTH * 0.85}
+                onValueChange={(value) =>
+                  setSelectedMonth(value === "no-month" ? "" : value)
+                }
+              />
             </Actionsheet.Item>
           </View>
           <View style={styles.buttonContainer}>

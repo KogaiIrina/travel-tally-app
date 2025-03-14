@@ -12,8 +12,9 @@ import ChooseCurrencyButton from "./ChooseCurrencyButton";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import Purchase from "./Purchase";
+import Purchase, { openSubscriptionModal } from "./Purchase";
 import { useSubscriptionStatus } from "../../../db/hooks/useSubscription";
+import ProFeature from "../ProFeature";
 
 interface InputViewProps {
   onChange: (money: number) => void;
@@ -118,7 +119,11 @@ export function NewInputView({
     setInternalPickerDate(new Date());
     setShowPicker(false);
   };
-
+  
+  const handleProBadgePress = () => {
+    openSubscriptionModal();
+  };
+  
   useEffect(() => {
     onChange(Number(amount.replace(/[,|-|*]/g, ".")));
     setNumberSize(amount.length > 6 ? 40 : 56);
@@ -130,15 +135,19 @@ export function NewInputView({
         <View>
           <View style={styles.dateSection}>
             <Text style={styles.greyText}>ADD TODAY OR</Text>
-            <Pressable
-              onPress={() => {
-                setShowPicker(true);
-                setIsPromoOpened(true);
-              }}
+            <ProFeature
+              onProBadgePress={handleProBadgePress}
             >
-              <Text style={styles.pressableText}>PICK A DATE</Text>
-            </Pressable>
-            {getModalOrPaywall()}
+              <Pressable
+                onPress={() => {
+                  setShowPicker(true);
+                  setIsPromoOpened(true);
+                }}
+              >
+                <Text style={styles.pressableText}>PICK A DATE</Text>
+              </Pressable>
+              {getModalOrPaywall()}
+            </ProFeature>
           </View>
           <View style={styles.expensesBox}>
             <TextInput

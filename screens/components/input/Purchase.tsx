@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
-import { Checkbox, Modal, Spinner, HStack, Heading, Toast } from "native-base";
+import { Modal, Toast, Box, VStack, Progress } from "native-base";
 import { PurchasesPackage } from "react-native-purchases";
 import { useRevenueCat } from "../../../utils/RevenueCatProvider";
+import { updateSubscriptionCache } from "../../../utils/useSubscriptionStatus";
 import BigBlueButton from "../BigBlueButton";
 import CloseIcon from "../expenses/icons/close";
 import { usePurchasePackage } from "../../../db/hooks/useSubscription";
@@ -10,18 +11,49 @@ import { usePurchasePackage } from "../../../db/hooks/useSubscription";
 interface PurchaseProps {
   isPromoOpened: boolean;
   setIsPromoOpened: (isOpen: boolean) => void;
+  onPurchaseInitiated?: () => void;
 }
 
 const PURCHASE_TIMEOUT = 30000;
 
+// Global state to manage subscription modal
+let globalSetIsPromoOpened: ((isOpen: boolean) => void) | null = null;
+
+/**
+ * Static method to open the subscription modal from anywhere in the app
+ * Must be used after the Purchase component has been mounted
+ */
+export const openSubscriptionModal = () => {
+  if (globalSetIsPromoOpened) {
+    globalSetIsPromoOpened(true);
+    return true;
+  }
+  console.warn('Purchase component not mounted yet. Cannot open subscription modal.');
+  return false;
+};
+
 const Purchase: React.FC<PurchaseProps> = ({
   isPromoOpened,
   setIsPromoOpened,
+  onPurchaseInitiated,
 }) => {
   const { packages } = useRevenueCat();
   const [isLoading, setIsLoading] = useState(false);
+  const [purchaseStatus, setPurchaseStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const { mutate: onPurchase } = usePurchasePackage();
+
+  // Store the setIsPromoOpened function in the global variable
+  useEffect(() => {
+    globalSetIsPromoOpened = setIsPromoOpened;
+    return () => {
+      // Clean up when component unmounts
+      if (globalSetIsPromoOpened === setIsPromoOpened) {
+        globalSetIsPromoOpened = null;
+      }
+    };
+  }, [setIsPromoOpened]);
 
   // Clear timeout when component unmounts
   useEffect(() => {
@@ -32,12 +64,52 @@ const Purchase: React.FC<PurchaseProps> = ({
     };
   }, [timeoutId]);
 
+  // Auto-close modal after successful purchase
+  useEffect(() => {
+    if (purchaseStatus === 'success') {
+      const successTimer = setTimeout(() => {
+        setIsPromoOpened(false);
+        setPurchaseStatus('idle');
+      }, 1500);
+      
+      return () => clearTimeout(successTimer);
+    }
+  }, [purchaseStatus, setIsPromoOpened]);
+
   const handlePurchase = (pack: PurchasesPackage) => {
     setIsLoading(true);
+    setPurchaseStatus('processing');
+    setStatusMessage('Processing your purchase...');
+    
+    // Optimistically close the modal and allow user to continue using the app
+    // This happens right after the Apple payment sheet is completed
+    const optimisticCloseTimer = setTimeout(() => {
+      // Only close if we're still in processing state (payment sheet completed but backend processing)
+      if (purchaseStatus === 'processing') {
+        setIsPromoOpened(false);
+        
+        // Show a non-intrusive toast that purchase is being processed in background
+        Toast.show({
+          title: "Purchase in progress",
+          description: "Your purchase is being processed in the background. Premium features will be available shortly.",
+          placement: "top",
+          duration: 3000,
+        });
+        
+        // Call the optional callback to notify parent components
+        if (onPurchaseInitiated) {
+          onPurchaseInitiated();
+        }
+      }
+    }, 3000); // Give a short time for quick purchases to complete normally
     
     // Set timeout to prevent indefinite loading
     const id = setTimeout(() => {
+      clearTimeout(optimisticCloseTimer);
       setIsLoading(false);
+      setPurchaseStatus('error');
+      setStatusMessage('Purchase is taking longer than expected. Please try again.');
+      
       Toast.show({
         title: "Purchase timeout",
         description: "The purchase is taking longer than expected. The transaction may still be processing. Please check your subscriptions later.",
@@ -51,12 +123,32 @@ const Purchase: React.FC<PurchaseProps> = ({
     onPurchase(pack, {
       onSuccess() {
         if (timeoutId) clearTimeout(timeoutId);
+        clearTimeout(optimisticCloseTimer);
         setIsLoading(false);
-        setIsPromoOpened(false);
+        setPurchaseStatus('success');
+        setStatusMessage('Purchase successful!');
+        
+        // Update subscription cache to immediately reflect purchase
+        updateSubscriptionCache(true);
+        
+        // If modal was already closed optimistically, show success toast
+        if (!isPromoOpened) {
+          Toast.show({
+            title: "Purchase completed",
+            description: "Your purchase was successful! All premium features are now available.",
+            placement: "top",
+            duration: 3000,
+          });
+        }
+        // Otherwise modal will auto-close via the useEffect
       },
       onError(error: any) {
         if (timeoutId) clearTimeout(timeoutId);
+        clearTimeout(optimisticCloseTimer);
         setIsLoading(false);
+        setPurchaseStatus('error');
+        setStatusMessage(error.message || 'Purchase failed. Please try again.');
+        
         Toast.show({
           title: "Purchase failed",
           description: error.message || "An error occurred during purchase. Please try again.",
@@ -67,13 +159,44 @@ const Purchase: React.FC<PurchaseProps> = ({
       onSettled() {
         // Ensure loading state is reset regardless of success or failure
         if (timeoutId) clearTimeout(timeoutId);
-        setIsLoading(false);
       }
     });
   };
 
   const [selectedPackage, setSelectedPackage] =
     useState<PurchasesPackage | null>(null);
+
+  const renderPurchaseStatus = () => {
+    switch (purchaseStatus) {
+      case 'processing':
+        return (
+          <Box position="absolute" bottom={0} left={0} right={0} bg="white" p={4} borderTopRadius="xl" shadow={2}>
+            <VStack space={2} alignItems="center">
+              <Progress value={65} size="xs" w="90%" colorScheme="blue" />
+              <Text style={styles.statusText}>{statusMessage}</Text>
+            </VStack>
+          </Box>
+        );
+      case 'success':
+        return (
+          <Box position="absolute" bottom={0} left={0} right={0} bg="#E7F3E8" p={4} borderTopRadius="xl" shadow={2}>
+            <VStack space={2} alignItems="center">
+              <Text style={[styles.statusText, { color: '#2E7D32' }]}>✓ {statusMessage}</Text>
+            </VStack>
+          </Box>
+        );
+      case 'error':
+        return (
+          <Box position="absolute" bottom={0} left={0} right={0} bg="#FFEBEE" p={4} borderTopRadius="xl" shadow={2}>
+            <VStack space={2} alignItems="center">
+              <Text style={[styles.statusText, { color: '#C62828' }]}>✗ {statusMessage}</Text>
+            </VStack>
+          </Box>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Modal isOpen={isPromoOpened} style={styles.paywallModal}>
@@ -104,21 +227,16 @@ const Purchase: React.FC<PurchaseProps> = ({
             <TouchableOpacity
               key={pack.identifier}
               onPress={() => setSelectedPackage(pack)}
-              style={styles.button}
+              style={[
+                styles.button,
+                selectedPackage?.identifier === pack.identifier && styles.selectedButton
+              ]}
               disabled={isLoading}
             >
               <View style={styles.promoDescription}>
-                <Checkbox
-                  value={pack.product.title}
-                  isChecked={selectedPackage?.identifier === pack.identifier}
-                  accessibilityLabel="This is a checkbox"
-                  colorScheme="blue"
-                  aria-label="This is a checkbox"
-                  isDisabled={isLoading}
-                />
                 <View style={styles.text}>
-                  <Text>{pack.product.title}</Text>
-                  <Text>{pack.product.priceString}</Text>
+                  <Text style={styles.packageTitle}>{pack.product.title}</Text>
+                  <Text style={styles.packagePrice}>{pack.product.priceString}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -130,34 +248,20 @@ const Purchase: React.FC<PurchaseProps> = ({
             if (selectedPackage) {
               handlePurchase(selectedPackage);
             } else {
-              alert("Please select a package first.");
+              Toast.show({
+                title: "Selection required",
+                description: "Please select a subscription package first.",
+                placement: "top",
+                duration: 3000,
+              });
             }
           }}
           isActive={selectedPackage ? true : false}
           disabled={isLoading}
         />
+        
+        {renderPurchaseStatus()}
       </View>
-      {isLoading && (
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <HStack space={8} justifyContent="center" alignItems="center">
-            <Spinner size="lg" color="#2C65E1" />
-            <Heading color="#2C65E1" fontSize="3xl">
-              Processing
-            </Heading>
-          </HStack>
-        </View>
-      )}
     </Modal>
   );
 };
@@ -170,6 +274,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: "40%",
     marginVertical: 6,
+    position: "relative",
   },
   closeIcon: {
     position: "absolute",
@@ -177,7 +282,7 @@ const styles = StyleSheet.create({
     left: 30,
     width: 70,
     height: 70,
-    backgroundColor: "#red",
+    zIndex: 10,
   },
   button: {
     padding: 14,
@@ -189,6 +294,10 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#2C65E1",
+  },
+  selectedButton: {
+    backgroundColor: "#F0F5FF",
+    borderWidth: 2,
   },
   paywallModal: {
     display: "flex",
@@ -215,6 +324,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 10,
   },
+  packageTitle: {
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  packagePrice: {
+    color: "#2C65E1",
+    fontWeight: "500",
+  },
   desc: {
     color: "#B6B7C0",
     paddingVertical: 4,
@@ -225,6 +342,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 8,
     borderColor: "#EA3C4A",
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
 
