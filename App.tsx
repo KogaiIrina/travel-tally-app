@@ -101,6 +101,16 @@ function Entrypoint() {
           );
 
           await tx.executeSql(
+            "CREATE TABLE IF NOT EXISTS custom_categories (" +
+              "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+              "key TEXT UNIQUE," +
+              "text TEXT," +
+              "color TEXT," +
+              "icon TEXT" +
+              ")"
+          );
+
+          await tx.executeSql(
             "CREATE TABLE IF NOT EXISTS subscription (" +
               "id INTEGER PRIMARY KEY AUTOINCREMENT," +
               "purchase_id TEXT NOT NULL," +

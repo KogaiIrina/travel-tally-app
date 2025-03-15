@@ -11,7 +11,7 @@ import useExpenses from "../../../db/hooks/useExpenses";
 import SettingsIcon from "./icons/settings";
 import exportFile from "./utils/export";
 import importFile from "./utils/importFile";
-import { restoreDb } from "./utils/dataRestore";
+import { restoreDb, dumpDb } from "./utils/dataRestore";
 import { Actionsheet, Box, Button, useDisclose } from "native-base";
 import HomeCurrencyButton from "../input/HomeCurrencyButton";
 import useHomeCountry from "../../../db/hooks/useHomeCountry";
@@ -25,15 +25,19 @@ export default function DataSettingsButton() {
       return;
     }
 
-    const json = JSON.stringify(expenses);
-
-    const filename = `traveltally-export-${new Date().toISOString()}.json`;
-    exportFile(json, filename, "application/json")
-      .then(() => Platform.OS === "android" && Alert.alert("Export Successful"))
-      .catch((error: any) => {
-        if (error) {
-          Alert.alert("Export Failed", error.message);
-        }
+    dumpDb()
+      .then(json => {
+        const filename = `traveltally-export-${new Date().toISOString()}.json`;
+        exportFile(json, filename, "application/json")
+          .then(() => Platform.OS === "android" && Alert.alert("Export Successful"))
+          .catch((error: any) => {
+            if (error) {
+              Alert.alert("Export Failed", error.message);
+            }
+          });
+      })
+      .catch(error => {
+        Alert.alert("Export Failed", error.message);
       });
   }
 

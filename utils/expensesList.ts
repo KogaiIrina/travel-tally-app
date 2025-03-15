@@ -18,6 +18,25 @@ import PharmacyIcon from "../screens/components/expenses/icons/pharmacy";
 import BeautyIcon from "../screens/components/expenses/icons/scissor";
 import OtherIcon from "../screens/components/expenses/icons/other";
 import SavingsIcon from "../screens/components/expenses/icons/savings";
+import { CustomCategoryType } from "../db/hooks/useCustomCategories";
+import { ReactElement } from "react";
+import PetsIcon from "../screens/components/expenses/icons/pets";
+import UtilityIcon from "../screens/components/expenses/icons/utility";
+import SpaIcon from "../screens/components/expenses/icons/spa";
+import PhoneIcon from "../screens/components/expenses/icons/phone";
+import HotelIcon from "../screens/components/expenses/icons/hotel";
+import BusIcon from "../screens/components/expenses/icons/bus";
+import FlowerIcon from "../screens/components/expenses/icons/flower";
+import RunningShoeIcon from "../screens/components/expenses/icons/running-shoe";
+import CatIcon from "../screens/components/expenses/icons/cat";
+import DogIcon from "../screens/components/expenses/icons/dog";
+import PalmTreeIcon from "../screens/components/expenses/icons/palm-tree";
+import MusicIcon from "../screens/components/expenses/icons/tickets";
+import CameraIcon from "../screens/components/expenses/icons/camera";
+import ChildrenIcon from "../screens/components/expenses/icons/children";
+import BooksIcon from "../screens/components/expenses/icons/books";
+import StudyingIcon from "../screens/components/expenses/icons/studying";
+import GiftIcon from "../screens/components/expenses/icons/gift";
 
 export const home = HomeIcon();
 export const airplain = AirPlainIcon();
@@ -40,6 +59,7 @@ export const beauty = BeautyIcon();
 export const savings = SavingsIcon();
 export const other = OtherIcon();
 
+// Default expense categories
 export const expensesArray = [
   {
     key: "rent",
@@ -139,6 +159,7 @@ export const expensesArray = [
   },
 ];
 
+// Default expense categories as an object
 export const expensesList = {
   rent: {
     key: "rent",
@@ -240,8 +261,85 @@ export const expensesList = {
 
 export type ExpenseCategory = keyof typeof expensesList;
 
+// Add an index signature to allow string indexing
+export interface ExpensesListType {
+  [key: string]: {
+    key: string;
+    icon: ReactElement;
+    color: string;
+    text: string;
+  };
+}
+
 export function isExpenseCategory(
   anyString: string
 ): anyString is ExpenseCategory {
   return expensesList.hasOwnProperty(anyString);
+}
+
+// Helper function to get icon component from string name
+export function getIconFromName(iconName: string): ReactElement {
+  switch (iconName) {
+    case 'home': return home;
+    case 'airplain': return airplain;
+    case 'food': return food;
+    case 'groceries': return groceries;
+    case 'cup': return cup;
+    case 'car': return car;
+    case 'entertainment': return entertainment;
+    case 'metro': return metro;
+    case 'souvenir': return souvenir;
+    case 'umbrella': return umbrella;
+    case 'tshirt': return tshirt;
+    case 'display': return display;
+    case 'pharmacy': return pharmacy;
+    case 'beauty': return beauty;
+    case 'savings': return savings;
+    case 'pets': return PetsIcon();
+    case 'utility': return UtilityIcon();
+    case 'spa': return SpaIcon();
+    case 'phone': return PhoneIcon();
+    case 'hotel': return HotelIcon();
+    case 'bus': return BusIcon();
+    case 'flower': return FlowerIcon();
+    case 'runningShoe': return RunningShoeIcon();
+    case 'cat': return CatIcon();
+    case 'dog': return DogIcon();
+    case 'palmTree': return PalmTreeIcon();
+    case 'music': return MusicIcon();
+    case 'camera': return CameraIcon();
+    case 'children': return ChildrenIcon();
+    case 'gift': return GiftIcon();
+    case 'books': return BooksIcon();
+    case 'studying': return StudyingIcon();
+    default: return other;
+  }
+}
+
+// Function to merge default and custom categories
+export function mergeCategories(customCategories: CustomCategoryType[] = []) {
+  const mergedExpensesArray = [...expensesArray];
+  const mergedExpensesList: ExpensesListType = { ...expensesList };
+
+  customCategories.forEach(category => {
+    const icon = getIconFromName(category.icon);
+    
+    // Add to array
+    mergedExpensesArray.push({
+      key: category.key,
+      icon,
+      color: category.color,
+      text: category.text
+    });
+    
+    // Add to object
+    mergedExpensesList[category.key] = {
+      key: category.key,
+      icon,
+      color: category.color,
+      text: category.text
+    };
+  });
+  
+  return { mergedExpensesArray, mergedExpensesList };
 }
