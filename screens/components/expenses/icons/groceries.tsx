@@ -3,7 +3,7 @@ import { SvgXml } from "react-native-svg";
 
 export default function GroceriesIcon() {
   const groceries = `
-  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" >
   <path d="M4.46484 21.375L6.75 32.625H29.25L31.5 21.375" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M10.4766 30.375L9 23.6173" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M27 23.6173L25.5234 30.375" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>

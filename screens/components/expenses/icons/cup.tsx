@@ -3,7 +3,7 @@ import { SvgXml } from "react-native-svg";
 
 export default function CupIcon() {
   const cup = `
-  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" width="800px" height="800px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" xml:space="preserve">
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" width="800px" height="800px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" xml:space="preserve" >
     <path fill="#ffffff" d="M9.5,7.5C9.776,7.5,10,7.276,10,7V3c0-0.276-0.224-0.5-0.5-0.5S9,2.724,9,3v4C9,7.276,9.224,7.5,9.5,7.5z"/>
     <path fill="#ffffff" d="M13.5,7.5C13.776,7.5,14,7.276,14,7V1c0-0.276-0.224-0.5-0.5-0.5S13,0.724,13,1v6   C13,7.276,13.224,7.5,13.5,7.5z"/>
     <path fill="#ffffff" d="M17.5,7.5C17.776,7.5,18,7.276,18,7V3c0-0.276-0.224-0.5-0.5-0.5S17,2.724,17,3v4   C17,7.276,17.224,7.5,17.5,7.5z"/>
