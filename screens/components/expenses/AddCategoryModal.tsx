@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 20,
     padding: 20,
+    paddingBottom: 0,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 15,
   },
   headerText: {
     fontSize: 20,
@@ -221,9 +222,10 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     maxHeight: "70%",
+    marginBottom: 10,
   },
   formGroup: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   label: {
     fontSize: 16,
