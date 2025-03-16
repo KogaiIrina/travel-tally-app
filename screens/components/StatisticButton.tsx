@@ -58,7 +58,13 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
     return expenses.map((expense) => {
       if (!(expense.expense_types in globalMergedExpensesList)) {
         console.warn(`Warning: unexpected expense type: ${expense.expense_types}`);
-        expense.expense_types = "other";
+        return {
+          value: expense.total_home_currency_amount,
+          text: `${Math.round(expense.percentage)}%`,
+          color: globalMergedExpensesList["other"].color,
+          type: expense.expense_types,
+          money: Math.round(expense.total_home_currency_amount).toString(),
+        };
       }
       
       return {

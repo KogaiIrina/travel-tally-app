@@ -23,7 +23,11 @@ export default function ExpensePlate({
   date,
 }: ExpensePlateProps) {
   // Get expense details from the global merged list first, fallback to default list
-  const expenseDetails = globalMergedExpensesList[expenseType] || expensesList[expenseType];
+  // If neither has the expense type, use "other" as a fallback
+  const expenseDetails = 
+    globalMergedExpensesList[expenseType] || 
+    expensesList[expenseType] || 
+    globalMergedExpensesList["other"]; // Fallback to "other" for backward compatibility
   
   return (
     <View style={styles.container}>
