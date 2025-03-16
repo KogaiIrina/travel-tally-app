@@ -92,7 +92,11 @@ export const RevenueCatProvider = ({ children }: any) => {
       const purchaseResult = await Purchases.purchasePackage(pack);
       
       // Update local state immediately to provide feedback to the user
-      setUser((prevUser) => ({ ...prevUser, cookies: prevUser.cookies + 5 }));
+      setUser((prevUser) => ({ 
+        ...prevUser, 
+        cookies: prevUser.cookies + 5,
+        pro: true // Immediately set pro status to true
+      }));
       
       // Then save to database (don't block UI on this)
       try {

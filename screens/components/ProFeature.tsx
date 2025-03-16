@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import ProBadge from './ProBadge';
-import useSubscriptionStatus from '../../utils/useSubscriptionStatus';
+import useSubscriptionStatus, { registerRefreshCallback } from '../../utils/useSubscriptionStatus';
 import { openSubscriptionModal } from './input/Purchase';
 
 interface ProFeatureProps {
@@ -32,7 +32,18 @@ const ProFeature: React.FC<ProFeatureProps> = ({
   style,
   badgeOffset = { x: -30, y: -5 }
 }) => {
-  const { hasActiveSubscription, isLoading } = useSubscriptionStatus();
+  const { hasActiveSubscription, isLoading, forceRefresh } = useSubscriptionStatus();
+  
+  // Register for global subscription status updates
+  useEffect(() => {
+    // Register this component to receive subscription updates
+    const unregister = registerRefreshCallback(forceRefresh);
+    
+    // Cleanup on unmount
+    return () => {
+      unregister();
+    };
+  }, [forceRefresh]);
   
   // If user is on Android, or has subscription, or we're still loading, just show the children
   if (Platform.OS === 'android' || hasActiveSubscription || isLoading) {

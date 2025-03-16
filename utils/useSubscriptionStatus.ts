@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRevenueCat, checkSubscriptionStatus } from './RevenueCatProvider';
 import { Platform } from 'react-native';
 
@@ -7,13 +7,19 @@ let cachedSubscriptionStatus = false;
 
 /**
  * Hook to check if the user has an active subscription
- * @returns Object containing subscription status and loading state
+ * @returns Object containing subscription status, loading state, and a function to force refresh
  */
 export const useSubscriptionStatus = () => {
   if (Platform.OS === "ios") {
     const { user } = useRevenueCat();
     const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(user.pro || cachedSubscriptionStatus);
     const [isLoading, setIsLoading] = useState<boolean>(!cachedSubscriptionStatus);
+    const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+
+    // Function to force a refresh of the subscription status
+    const forceRefresh = useCallback(() => {
+      setRefreshTrigger(prev => prev + 1);
+    }, []);
 
     useEffect(() => {
       const checkStatus = async () => {
@@ -22,6 +28,13 @@ export const useSubscriptionStatus = () => {
           if (user.pro) {
             setHasActiveSubscription(true);
             cachedSubscriptionStatus = true;
+            setIsLoading(false);
+            return;
+          }
+          
+          // If we have a cached status of true, use it immediately
+          if (cachedSubscriptionStatus) {
+            setHasActiveSubscription(true);
             setIsLoading(false);
             return;
           }
@@ -38,16 +51,19 @@ export const useSubscriptionStatus = () => {
       };
 
       checkStatus();
-    }, [user.pro]);
+    }, [user.pro, refreshTrigger]);
 
     return {
       hasActiveSubscription,
-      isLoading
+      isLoading,
+      forceRefresh
     };
   } else {
+    // On Android, all features are available by default
     return {
-      hasActiveSubscription: false,
-      isLoading: false
+      hasActiveSubscription: true,
+      isLoading: false,
+      forceRefresh: () => {} // No-op function for Android
     };
   }
 };
@@ -55,6 +71,20 @@ export const useSubscriptionStatus = () => {
 // Function to update subscription status after purchase
 export const updateSubscriptionCache = (status: boolean) => {
   cachedSubscriptionStatus = status;
+};
+
+// Global function to trigger a refresh of all subscription status hooks
+let globalRefreshCallbacks: (() => void)[] = [];
+
+export const registerRefreshCallback = (callback: () => void) => {
+  globalRefreshCallbacks.push(callback);
+  return () => {
+    globalRefreshCallbacks = globalRefreshCallbacks.filter(cb => cb !== callback);
+  };
+};
+
+export const triggerGlobalSubscriptionRefresh = () => {
+  globalRefreshCallbacks.forEach(callback => callback());
 };
 
 export default useSubscriptionStatus; 
