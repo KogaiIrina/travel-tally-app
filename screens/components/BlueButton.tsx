@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { 
   Alert, 
   Dimensions, 
@@ -8,7 +8,8 @@ import {
   Platform, 
   Keyboard, 
   ScrollView,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  InteractionManager
 } from "react-native";
 import { Actionsheet, Box, useDisclose } from "native-base";
 import PlusIcon from "./expenses/icons/plus";
@@ -25,6 +26,58 @@ interface BlueButtonProps {
   isOpen?: boolean;
   onClose?: () => void;
 }
+
+// Memoized expense form to prevent unnecessary re-renders
+const ExpenseForm = memo(({ 
+  sum, 
+  handleAmountChange, 
+  handleAmountOfSpendingChange, 
+  setDate, 
+  setExpenseType, 
+  activeExpenseTypeKey, 
+  setActiveExpenseTypeKey 
+}: { 
+  sum: string;
+  handleAmountChange: (value: string) => void;
+  handleAmountOfSpendingChange: (value: number) => void;
+  setDate: (date: Date) => void;
+  setExpenseType: (type: string) => void;
+  activeExpenseTypeKey?: string;
+  setActiveExpenseTypeKey: (key: string) => void;
+}) => {
+  // Memoize the NewInputView to prevent unnecessary re-renders
+  const InputComponent = useMemo(() => (
+    <NewInputView
+      onChange={handleAmountOfSpendingChange}
+      setDate={setDate}
+      amount={sum}
+      changeAmount={handleAmountChange}
+    />
+  ), [sum, handleAmountChange, handleAmountOfSpendingChange, setDate]);
+
+  return (
+    <>
+      {InputComponent}
+      <View style={{ flex: 1 }}>
+        <CountrySelector />
+        <Box marginTop={5} flex={1}>
+          <ExpensesContainer
+            setExpenseType={setExpenseType}
+            activeExpenseTypeKey={activeExpenseTypeKey}
+            setActiveExpenseTypeKey={setActiveExpenseTypeKey}
+          />
+        </Box>
+      </View>
+    </>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  // Only re-render if these specific props changed
+  return (
+    prevProps.sum === nextProps.sum &&
+    prevProps.activeExpenseTypeKey === nextProps.activeExpenseTypeKey
+  );
+});
 
 const BlueButton: React.FC<BlueButtonProps> = ({ 
   hideUI = false,
@@ -54,6 +107,39 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     // Reset form state when closing
     setActiveExpenseTypeKey("");
   });
+
+  // Optimized amount change handler with debounce for iOS
+  const handleAmountChange = useCallback((value: string) => {
+    // Only allow valid numeric input with at most one decimal point
+    const sanitizedValue = value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+    
+    // Ensure only one decimal point
+    const parts = sanitizedValue.split('.');
+    const finalValue = parts.length > 2 
+      ? `${parts[0]}.${parts.slice(1).join('')}`
+      : sanitizedValue;
+    
+    // Use InteractionManager to defer the state update on iOS
+    if (Platform.OS === 'ios') {
+      InteractionManager.runAfterInteractions(() => {
+        changeSum(finalValue);
+      });
+    } else {
+      changeSum(finalValue);
+    }
+  }, []);
+
+  // Handle amount of spending update with debounce for iOS
+  const handleAmountOfSpendingChange = useCallback((value: number) => {
+    // Use requestAnimationFrame to defer the state update on iOS
+    if (Platform.OS === 'ios') {
+      requestAnimationFrame(() => {
+        setAmountOfSpending(value);
+      });
+    } else {
+      setAmountOfSpending(value);
+    }
+  }, []);
 
   // Handle keyboard events
   useEffect(() => {
@@ -188,22 +274,15 @@ const BlueButton: React.FC<BlueButtonProps> = ({
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 80 }}
             >
-              <NewInputView
-                onChange={setAmountOfSpending}
+              <ExpenseForm
+                sum={sum}
+                handleAmountChange={handleAmountChange}
+                handleAmountOfSpendingChange={handleAmountOfSpendingChange}
                 setDate={setDate}
-                amount={sum}
-                changeAmount={changeSum}
+                setExpenseType={setExpenseType}
+                activeExpenseTypeKey={activeExpenseTypeKey}
+                setActiveExpenseTypeKey={setActiveExpenseTypeKey}
               />
-              <View style={{ flex: 1 }}>
-                <CountrySelector />
-                <Box marginTop={5} flex={1}>
-                  <ExpensesContainer
-                    setExpenseType={setExpenseType}
-                    activeExpenseTypeKey={activeExpenseTypeKey}
-                    setActiveExpenseTypeKey={setActiveExpenseTypeKey}
-                  />
-                </Box>
-              </View>
             </ScrollView>   
             {!keyboardVisible && (
               <Box marginY={5}>
