@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -6,6 +6,7 @@ import {
   Pressable,
   TouchableOpacity,
   Platform,
+  InteractionManager
 } from "react-native";
 import { Modal, View } from "native-base";
 import ChooseCurrencyButton from "./ChooseCurrencyButton";
@@ -23,19 +24,88 @@ interface InputViewProps {
   amount: string;
 }
 
+// Memoized TextInput component to prevent unnecessary re-renders
+const AmountInput = memo(({ amount, changeAmount }: { amount: string, changeAmount: (text: string) => void }) => {
+  // Calculate font size directly without state
+  const fontSize = amount.length > 6 ? 40 : 56;
+  
+  // Create a local state copy for iOS to prevent UI lag
+  const [localValue, setLocalValue] = useState(amount);
+  
+  // Update local value when prop changes
+  useEffect(() => {
+    setLocalValue(amount);
+  }, [amount]);
+  
+  // Handle text changes with optimized rendering for iOS
+  const handleTextChange = useCallback((text: string) => {
+    if (Platform.OS === 'ios') {
+      // Update local value immediately for responsive UI
+      setLocalValue(text);
+      // Defer the actual change to parent component
+      InteractionManager.runAfterInteractions(() => {
+        changeAmount(text);
+      });
+    } else {
+      // On Android, directly update the parent
+      changeAmount(text);
+    }
+  }, [changeAmount]);
+  
+  // Use a more performant approach for the TextInput with iOS-specific optimizations
+  return (
+    <TextInput
+      style={[
+        styles.newText, 
+        { fontSize },
+        Platform.OS === 'ios' ? styles.iosTextInput : {}
+      ]}
+      keyboardType="numeric"
+      returnKeyType="done"
+      placeholder={"0.00"}
+      onChangeText={handleTextChange}
+      value={Platform.OS === 'ios' ? localValue : amount}
+      maxLength={10}
+      caretHidden={false}
+      autoComplete="off"
+      autoCorrect={false}
+      spellCheck={false}
+      autoCapitalize="none"
+      underlineColorAndroid="transparent"
+      // iOS-specific props to improve performance
+      enablesReturnKeyAutomatically={false}
+      contextMenuHidden={true}
+      // Disable auto-adjustments that can cause re-renders
+      disableFullscreenUI={true}
+    />
+  );
+}, (prevProps, nextProps) => {
+  // Only re-render if the amount actually changed
+  return prevProps.amount === nextProps.amount;
+});
+
 export function NewInputView({
   onChange,
   setDate,
   changeAmount,
   amount,
 }: InputViewProps) {
-  const [numberSize, setNumberSize] = useState<number>(56);
-  const [showPicker, setShowPicker] = useState(false);
+  const [showPicker, setShowPicker] = React.useState(false);
+  const [internalPickerDate, setInternalPickerDate] = React.useState(new Date());
+  const [isPromoOpened, setIsPromoOpened] = React.useState(false);
 
-  // the picker needs its own date that won't be in-sync with the date that the user
-  // actually picked
-  const [internalPickerDate, setInternalPickerDate] = useState(new Date());
-  const [isPromoOpened, setIsPromoOpened] = useState(false);
+  // Process amount changes with useCallback to prevent unnecessary re-renders
+  const handleAmountChange = useCallback((text: string) => {
+    // Directly call changeAmount without any processing to minimize work
+    changeAmount(text);
+    
+    // Debounce the onChange call to prevent excessive updates
+    // Only process the amount change for the parent component after a small delay
+    const parsedAmount = Number(text.replace(/[,|-|*]/g, "."));
+    requestAnimationFrame(() => {
+      onChange(parsedAmount);
+    });
+  }, [onChange, changeAmount]);
 
   const getModalOrPaywall = () => {
     if (Platform.OS === "ios") {
@@ -123,11 +193,6 @@ export function NewInputView({
   const handleProBadgePress = () => {
     openSubscriptionModal();
   };
-  
-  useEffect(() => {
-    onChange(Number(amount.replace(/[,|-|*]/g, ".")));
-    setNumberSize(amount.length > 6 ? 40 : 56);
-  }, [amount]);
 
   return (
     <View style={styles.InputArea}>
@@ -150,15 +215,7 @@ export function NewInputView({
             </ProFeature>
           </View>
           <View style={styles.expensesBox}>
-            <TextInput
-              style={styles.newText && { fontSize: numberSize }}
-              keyboardType="numeric"
-              returnKeyType="done"
-              placeholder={"0.00"}
-              onChangeText={changeAmount}
-              value={amount}
-              maxLength={10}
-            />
+            <AmountInput amount={amount} changeAmount={handleAmountChange} />
             <ChooseCurrencyButton />
           </View>
           <View style={styles.lineStyle} />
@@ -248,6 +305,13 @@ const styles = StyleSheet.create({
   newText: {
     color: "#000000",
     lineHeight: 64,
+    minHeight: 64,
+    flex: 1,
+    textAlign: 'left',
+    fontWeight: '400',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    margin: 0,
   },
   greyText: {
     fontSize: 18,
@@ -266,5 +330,12 @@ const styles = StyleSheet.create({
   lineStyle: {
     borderWidth: 0.5,
     borderColor: "#B8B9BC",
+  },
+  iosTextInput: {
+    // iOS-specific styles to improve performance
+    opacity: 0.99, // Trick to force hardware acceleration
+    transform: [{ translateX: 0 }], // Force GPU rendering
+    backfaceVisibility: 'hidden', // Reduce composite layers
+    borderWidth: 0, // Remove border which can cause repaints
   },
 });

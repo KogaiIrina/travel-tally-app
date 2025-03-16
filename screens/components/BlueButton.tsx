@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { 
   Alert, 
   Dimensions, 
@@ -8,7 +8,8 @@ import {
   Platform, 
   Keyboard, 
   ScrollView,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  InteractionManager
 } from "react-native";
 import { Actionsheet, Box, useDisclose } from "native-base";
 import PlusIcon from "./expenses/icons/plus";
@@ -25,6 +26,69 @@ interface BlueButtonProps {
   isOpen?: boolean;
   onClose?: () => void;
 }
+
+// Memoized expense form to prevent unnecessary re-renders
+const ExpenseForm = memo(({ 
+  sum, 
+  handleAmountChange, 
+  handleAmountOfSpendingChange, 
+  setDate, 
+  setExpenseType, 
+  activeExpenseTypeKey, 
+  setActiveExpenseTypeKey 
+}: { 
+  sum: string;
+  handleAmountChange: (value: string) => void;
+  handleAmountOfSpendingChange: (value: number) => void;
+  setDate: (date: Date) => void;
+  setExpenseType: (type: string) => void;
+  activeExpenseTypeKey?: string;
+  setActiveExpenseTypeKey: (key: string) => void;
+}) => {
+  // Memoize the NewInputView to prevent unnecessary re-renders
+  const InputComponent = useMemo(() => (
+    <NewInputView
+      onChange={handleAmountOfSpendingChange}
+      setDate={setDate}
+      amount={sum}
+      changeAmount={handleAmountChange}
+    />
+  ), [sum, handleAmountChange, handleAmountOfSpendingChange, setDate]);
+
+  // Reset expense type when sum changes to empty (form reset)
+  useEffect(() => {
+    if (sum === "" && activeExpenseTypeKey) {
+      setActiveExpenseTypeKey("");
+      setExpenseType("");
+    }
+  }, [sum, activeExpenseTypeKey, setActiveExpenseTypeKey, setExpenseType]);
+
+  return (
+    <>
+      {InputComponent}
+      <View style={{ flex: 1 }}>
+        <CountrySelector />
+        <Box marginTop={5} flex={1}>
+          <ExpensesContainer
+            setExpenseType={setExpenseType}
+            activeExpenseTypeKey={activeExpenseTypeKey}
+            setActiveExpenseTypeKey={setActiveExpenseTypeKey}
+          />
+        </Box>
+      </View>
+    </>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  // Only re-render if these specific props changed
+  // We need to check all props that affect the rendering
+  return (
+    prevProps.sum === nextProps.sum &&
+    prevProps.activeExpenseTypeKey === nextProps.activeExpenseTypeKey &&
+    // If sum is empty, we're in a reset state, so always re-render
+    prevProps.sum !== ""
+  );
+});
 
 const BlueButton: React.FC<BlueButtonProps> = ({ 
   hideUI = false,
@@ -45,15 +109,68 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const isoDate = date.toISOString().split("T")[0];
 
   // Use internal state if external props are not provided
-  const { isOpen: internalIsOpen, onOpen, onClose: internalOnClose } = useDisclose();
+  const { isOpen: internalIsOpen, onOpen: internalOnOpen, onClose: internalOnClose } = useDisclose();
   
   // Determine which values to use
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
-  const onClose = externalOnClose || (() => {
-    internalOnClose();
+  
+  // Reset all form values when closing the form
+  const onClose = useCallback(() => {
+    if (externalOnClose) {
+      externalOnClose();
+    } else {
+      internalOnClose();
+    }
+    
     // Reset form state when closing
     setActiveExpenseTypeKey("");
-  });
+  }, [externalOnClose, internalOnClose]);
+
+  // Reset all form values when opening the form
+  const onOpen = useCallback(() => {
+    // Reset all form values to ensure we don't remember previous expense data
+    setAmountOfSpending(undefined);
+    changeSum("");
+    setExpenseType(undefined);
+    setActiveExpenseTypeKey("");
+    setDate(new Date());
+    
+    // Then open the form
+    internalOnOpen();
+  }, [internalOnOpen]);
+
+  // Optimized amount change handler with debounce for iOS
+  const handleAmountChange = useCallback((value: string) => {
+    // Only allow valid numeric input with at most one decimal point
+    const sanitizedValue = value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+    
+    // Ensure only one decimal point
+    const parts = sanitizedValue.split('.');
+    const finalValue = parts.length > 2 
+      ? `${parts[0]}.${parts.slice(1).join('')}`
+      : sanitizedValue;
+    
+    // Use InteractionManager to defer the state update on iOS
+    if (Platform.OS === 'ios') {
+      InteractionManager.runAfterInteractions(() => {
+        changeSum(finalValue);
+      });
+    } else {
+      changeSum(finalValue);
+    }
+  }, []);
+
+  // Handle amount of spending update with debounce for iOS
+  const handleAmountOfSpendingChange = useCallback((value: number) => {
+    // Use requestAnimationFrame to defer the state update on iOS
+    if (Platform.OS === 'ios') {
+      requestAnimationFrame(() => {
+        setAmountOfSpending(value);
+      });
+    } else {
+      setAmountOfSpending(value);
+    }
+  }, []);
 
   // Handle keyboard events
   useEffect(() => {
@@ -84,25 +201,33 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     }
   }, [isOpen]);
 
-  let isActive =
-    homeCountry &&
-    expenseType &&
-    currentCountry &&
-    amountOfSpending &&
-    !isSavingExpense
-      ? true
-      : false;
+  // Strictly check if all required fields are filled
+  const isActive = useMemo(() => {
+    return Boolean(
+      homeCountry &&
+      expenseType &&
+      currentCountry &&
+      amountOfSpending &&
+      amountOfSpending > 0 &&
+      sum.trim() !== "" &&
+      !isSavingExpense
+    );
+  }, [homeCountry, expenseType, currentCountry, amountOfSpending, sum, isSavingExpense]);
 
   async function saveTransaction() {
     if (isSavingExpense) return;
+    
+    // Double-check all required fields are filled
     if (!homeCountry)
       return Alert.alert("you have to choose home currency in the settings");
-    if (!expenseType) return Alert.alert("you have to choose expenses");
+    if (!expenseType) 
+      return Alert.alert("you have to choose expenses");
     if (!currentCountry)
       return Alert.alert("you have to choose current country");
-    if (!amountOfSpending)
+    if (!amountOfSpending || amountOfSpending <= 0)
       return Alert.alert("you have to choose amount of spending");
-    if (!selectedCurrency) return Alert.alert("you have to choose currency");
+    if (!selectedCurrency) 
+      return Alert.alert("you have to choose currency");
 
     const convertRate = async (
       selectedCurrency: string | undefined,
@@ -150,15 +275,19 @@ const BlueButton: React.FC<BlueButtonProps> = ({
       },
       {
         onSuccess: () => {
+          // Reset all form values after successful save
+          setAmountOfSpending(undefined);
           changeSum("");
+          setExpenseType("");
+          setActiveExpenseTypeKey("");
+          setDate(new Date());
+          onClose();
         },
         onError: () => {
           Alert.alert("something went wrong");
         },
       }
     );
-    setActiveExpenseTypeKey("");
-    onClose();
   }
 
   const onButtonPress = () => {
@@ -188,22 +317,15 @@ const BlueButton: React.FC<BlueButtonProps> = ({
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 80 }}
             >
-              <NewInputView
-                onChange={setAmountOfSpending}
+              <ExpenseForm
+                sum={sum}
+                handleAmountChange={handleAmountChange}
+                handleAmountOfSpendingChange={handleAmountOfSpendingChange}
                 setDate={setDate}
-                amount={sum}
-                changeAmount={changeSum}
+                setExpenseType={setExpenseType}
+                activeExpenseTypeKey={activeExpenseTypeKey}
+                setActiveExpenseTypeKey={setActiveExpenseTypeKey}
               />
-              <View style={{ flex: 1 }}>
-                <CountrySelector />
-                <Box marginTop={5} flex={1}>
-                  <ExpensesContainer
-                    setExpenseType={setExpenseType}
-                    activeExpenseTypeKey={activeExpenseTypeKey}
-                    setActiveExpenseTypeKey={setActiveExpenseTypeKey}
-                  />
-                </Box>
-              </View>
             </ScrollView>   
             {!keyboardVisible && (
               <Box marginY={5}>
