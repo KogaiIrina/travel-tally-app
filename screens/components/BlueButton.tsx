@@ -55,6 +55,14 @@ const ExpenseForm = memo(({
     />
   ), [sum, handleAmountChange, handleAmountOfSpendingChange, setDate]);
 
+  // Reset expense type when sum changes to empty (form reset)
+  useEffect(() => {
+    if (sum === "" && activeExpenseTypeKey) {
+      setActiveExpenseTypeKey("");
+      setExpenseType("");
+    }
+  }, [sum, activeExpenseTypeKey, setActiveExpenseTypeKey, setExpenseType]);
+
   return (
     <>
       {InputComponent}
@@ -73,9 +81,12 @@ const ExpenseForm = memo(({
 }, (prevProps, nextProps) => {
   // Custom comparison to prevent unnecessary re-renders
   // Only re-render if these specific props changed
+  // We need to check all props that affect the rendering
   return (
     prevProps.sum === nextProps.sum &&
-    prevProps.activeExpenseTypeKey === nextProps.activeExpenseTypeKey
+    prevProps.activeExpenseTypeKey === nextProps.activeExpenseTypeKey &&
+    // If sum is empty, we're in a reset state, so always re-render
+    prevProps.sum !== ""
   );
 });
 
@@ -98,15 +109,35 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const isoDate = date.toISOString().split("T")[0];
 
   // Use internal state if external props are not provided
-  const { isOpen: internalIsOpen, onOpen, onClose: internalOnClose } = useDisclose();
+  const { isOpen: internalIsOpen, onOpen: internalOnOpen, onClose: internalOnClose } = useDisclose();
   
   // Determine which values to use
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
-  const onClose = externalOnClose || (() => {
-    internalOnClose();
+  
+  // Reset all form values when closing the form
+  const onClose = useCallback(() => {
+    if (externalOnClose) {
+      externalOnClose();
+    } else {
+      internalOnClose();
+    }
+    
     // Reset form state when closing
     setActiveExpenseTypeKey("");
-  });
+  }, [externalOnClose, internalOnClose]);
+
+  // Reset all form values when opening the form
+  const onOpen = useCallback(() => {
+    // Reset all form values to ensure we don't remember previous expense data
+    setAmountOfSpending(undefined);
+    changeSum("");
+    setExpenseType(undefined);
+    setActiveExpenseTypeKey("");
+    setDate(new Date());
+    
+    // Then open the form
+    internalOnOpen();
+  }, [internalOnOpen]);
 
   // Optimized amount change handler with debounce for iOS
   const handleAmountChange = useCallback((value: string) => {
@@ -170,25 +201,33 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     }
   }, [isOpen]);
 
-  let isActive =
-    homeCountry &&
-    expenseType &&
-    currentCountry &&
-    amountOfSpending &&
-    !isSavingExpense
-      ? true
-      : false;
+  // Strictly check if all required fields are filled
+  const isActive = useMemo(() => {
+    return Boolean(
+      homeCountry &&
+      expenseType &&
+      currentCountry &&
+      amountOfSpending &&
+      amountOfSpending > 0 &&
+      sum.trim() !== "" &&
+      !isSavingExpense
+    );
+  }, [homeCountry, expenseType, currentCountry, amountOfSpending, sum, isSavingExpense]);
 
   async function saveTransaction() {
     if (isSavingExpense) return;
+    
+    // Double-check all required fields are filled
     if (!homeCountry)
       return Alert.alert("you have to choose home currency in the settings");
-    if (!expenseType) return Alert.alert("you have to choose expenses");
+    if (!expenseType) 
+      return Alert.alert("you have to choose expenses");
     if (!currentCountry)
       return Alert.alert("you have to choose current country");
-    if (!amountOfSpending)
+    if (!amountOfSpending || amountOfSpending <= 0)
       return Alert.alert("you have to choose amount of spending");
-    if (!selectedCurrency) return Alert.alert("you have to choose currency");
+    if (!selectedCurrency) 
+      return Alert.alert("you have to choose currency");
 
     const convertRate = async (
       selectedCurrency: string | undefined,
@@ -236,15 +275,19 @@ const BlueButton: React.FC<BlueButtonProps> = ({
       },
       {
         onSuccess: () => {
+          // Reset all form values after successful save
+          setAmountOfSpending(undefined);
           changeSum("");
+          setExpenseType("");
+          setActiveExpenseTypeKey("");
+          setDate(new Date());
+          onClose();
         },
         onError: () => {
           Alert.alert("something went wrong");
         },
       }
     );
-    setActiveExpenseTypeKey("");
-    onClose();
   }
 
   const onButtonPress = () => {
