@@ -37,6 +37,10 @@ import ChildrenIcon from "../screens/components/expenses/icons/children";
 import BooksIcon from "../screens/components/expenses/icons/books";
 import StudyingIcon from "../screens/components/expenses/icons/studying";
 import GiftIcon from "../screens/components/expenses/icons/gift";
+import GymIcon from "../screens/components/expenses/icons/gym";
+import SofaIcon from "../screens/components/expenses/icons/sofa";
+import ShoppingIcon from "../screens/components/expenses/icons/shopping";
+import TicketsIcon from "../screens/components/expenses/icons/tickets";
 
 export const home = HomeIcon();
 export const airplain = AirPlainIcon();
@@ -274,6 +278,11 @@ export interface ExpensesListType {
 export function isExpenseCategory(
   anyString: string
 ): anyString is ExpenseCategory {
+  // Check in the global merged list first
+  if (globalMergedExpensesList.hasOwnProperty(anyString)) {
+    return true;
+  }
+  // Then check in the default list
   return expensesList.hasOwnProperty(anyString);
 }
 
@@ -297,6 +306,10 @@ export function getIconFromName(iconName: string): ReactElement {
     case 'savings': return savings;
     case 'pets': return PetsIcon();
     case 'utility': return UtilityIcon();
+    case 'gym': return GymIcon();
+    case 'studying': return StudyingIcon();
+    case 'sofa': return SofaIcon();
+    case 'shopping': return ShoppingIcon();
     case 'spa': return SpaIcon();
     case 'phone': return PhoneIcon();
     case 'hotel': return HotelIcon();
@@ -311,10 +324,15 @@ export function getIconFromName(iconName: string): ReactElement {
     case 'children': return ChildrenIcon();
     case 'gift': return GiftIcon();
     case 'books': return BooksIcon();
+    case 'tickets': return TicketsIcon();
     case 'studying': return StudyingIcon();
+    case 'other': return OtherIcon();
     default: return other;
   }
 }
+
+// Global merged expenses list that will be updated when custom categories change
+export let globalMergedExpensesList: ExpensesListType = { ...expensesList };
 
 // Function to merge default and custom categories
 export function mergeCategories(customCategories: CustomCategoryType[] = []) {
@@ -340,6 +358,9 @@ export function mergeCategories(customCategories: CustomCategoryType[] = []) {
       text: category.text
     };
   });
+  
+  // Update the global merged expenses list
+  globalMergedExpensesList = mergedExpensesList;
   
   return { mergedExpensesArray, mergedExpensesList };
 }

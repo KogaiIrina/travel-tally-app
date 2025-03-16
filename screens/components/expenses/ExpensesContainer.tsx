@@ -23,6 +23,7 @@ export default function ExpensesContainer({
 
   useEffect(() => {
     if (customCategories) {
+      // This will also update the globalMergedExpensesList internally
       const { mergedExpensesArray } = mergeCategories(customCategories);
       setAllExpenseButtons(mergedExpensesArray);
     }

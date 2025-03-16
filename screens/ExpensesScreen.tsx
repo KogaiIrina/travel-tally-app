@@ -21,7 +21,7 @@ import { formatNumber } from "../utils/formatNumber";
 import DataSettingsButton from "./components/expenses/DataSettingsButton";
 import { LinearGradient } from "expo-linear-gradient";
 import BlueButton from "./components/BlueButton";
-import { expensesList } from "../utils/expensesList";
+import { expensesList, globalMergedExpensesList } from "../utils/expensesList";
 import { currencyList } from "../utils/currencyList";
 import AppliedFilterIndicator from "../organisms/AppliedFilterIndicator";
 import { useCountryById } from "../db/hooks/useCountries";
@@ -171,9 +171,20 @@ export default function ExpensesScreen() {
 }
 
 function stringToExpenseTypeSafe(str: string): keyof typeof expensesList {
+  // First check in the global merged expenses list that includes custom categories
+  if (str in globalMergedExpensesList) {
+    return str as keyof typeof expensesList;
+  }
+  
+  // Then check in the default expenses list
   if (str in expensesList) {
     return str as keyof typeof expensesList;
   }
+  
+  // Log a warning for debugging purposes
+  console.warn(`Warning: Error: unexpected expense type: ${str}`);
+  
+  // Still return "other" as fallback
   return "other";
 }
 

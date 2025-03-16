@@ -15,7 +15,7 @@ import RNDateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { PieChart } from "react-native-gifted-charts";
 import { useGroupedExpenses } from "../../db/hooks/useExpenses";
-import { expensesList, isExpenseCategory } from "../../utils/expensesList";
+import { expensesList, globalMergedExpensesList } from "../../utils/expensesList";
 import ChartContainer from "./ChartContainer";
 import EnhancedLegend from "./EnhancedLegend";
 import DateRangePicker from "./DateRangePicker";
@@ -56,13 +56,15 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
       return [];
     }
     return expenses.map((expense) => {
-      if (!isExpenseCategory(expense.expense_types)) {
-        throw new Error(`unexpected expense type: ${expense.expense_types}`);
+      if (!(expense.expense_types in globalMergedExpensesList)) {
+        console.warn(`Warning: unexpected expense type: ${expense.expense_types}`);
+        expense.expense_types = "other";
       }
+      
       return {
         value: expense.total_home_currency_amount,
         text: `${Math.round(expense.percentage)}%`,
-        color: expensesList[expense.expense_types].color,
+        color: globalMergedExpensesList[expense.expense_types].color,
         type: expense.expense_types,
         money: Math.round(expense.total_home_currency_amount).toString(),
       };

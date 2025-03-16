@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View, Pressable, Text } from "react-native";
 import { UseExpensesFilter } from "../db/hooks/useExpenses";
-import { expensesList, isExpenseCategory } from "../utils/expensesList";
+import { expensesList, isExpenseCategory, globalMergedExpensesList } from "../utils/expensesList";
 import CloseIcon from "../screens/components/expenses/icons/close";
 
 type FilterParams = {
@@ -20,6 +20,9 @@ export default function AppliedFilterIndicator({
       ? expenseFilter.category
       : "other";
 
+  // Get expense details from the global merged list first, fallback to default list
+  const expenseDetails = globalMergedExpensesList[category] || expensesList[category];
+
   return (
     <View style={styles.filters}>
       <Text style={styles.filterText}>
@@ -31,10 +34,10 @@ export default function AppliedFilterIndicator({
         <View
           style={[
             styles.icon,
-            { backgroundColor: expensesList[category]?.color },
+            { backgroundColor: expenseDetails?.color },
           ]}
         >
-          {expensesList[category]?.icon}
+          {expenseDetails?.icon}
         </View>
       )}
       <Pressable
