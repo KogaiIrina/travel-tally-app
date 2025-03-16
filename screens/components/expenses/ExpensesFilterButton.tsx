@@ -5,12 +5,13 @@ import useCountries from "../../../db/hooks/useCountries";
 import FilterIcon from "./icons/filter";
 import CalendarIcon from "./icons/calendar";
 import ExpensesCategoryIcon from "./icons/expenses-type";
-import { expensesArray } from "../../../utils/expensesList";
+import { expensesArray, mergeCategories } from "../../../utils/expensesList";
 import { SmallWhiteButton, SmallYellowButton } from "../smallButton";
 import { UseExpensesFilter } from "../../../db/hooks/useExpenses";
 import useMonths from "../../../db/hooks/useMonths";
 import { BetterPickerSelect } from "../BetterPickerSelect";
 import CustomDropdown from "../CustomDropdown";
+import useCustomCategories from "../../../db/hooks/useCustomCategories";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -25,6 +26,7 @@ export default function ExpensesFilterButton({
 }: FilterButtonProps) {
   const { data: countries } = useCountries();
   const { data: months } = useMonths();
+  const { data: customCategories } = useCustomCategories();
 
   const [selectedCountryId, setSelectedCountryId] = useState<
     number | undefined
@@ -99,13 +101,18 @@ export default function ExpensesFilterButton({
   }, [months]);
 
   const expensesList = useMemo(() => {
-    return (expensesArray || []).map(({ key, text }, index) => ({
+    // Get the merged array that includes custom categories
+    const { mergedExpensesArray } = customCategories 
+      ? mergeCategories(customCategories) 
+      : { mergedExpensesArray: expensesArray };
+    
+    return mergedExpensesArray.map(({ key, text }, index) => ({
       label: `${text}`,
       value: key,
       id: index,
       key: key,
     }));
-  }, [expensesArray]);
+  }, [customCategories]);
 
   return (
     <>

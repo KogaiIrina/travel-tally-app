@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, StyleSheet, View } from "react-native";
-import { expensesList } from "../../../utils/expensesList";
+import { expensesList, globalMergedExpensesList } from "../../../utils/expensesList";
 import HomeIcon from "./icons/home";
 
 interface ExpensePlateProps {
@@ -22,15 +22,22 @@ export default function ExpensePlate({
   expenseType,
   date,
 }: ExpensePlateProps) {
+  // Get expense details from the global merged list first, fallback to default list
+  // If neither has the expense type, use "other" as a fallback
+  const expenseDetails = 
+    globalMergedExpensesList[expenseType] || 
+    expensesList[expenseType] || 
+    globalMergedExpensesList["other"]; // Fallback to "other" for backward compatibility
+  
   return (
     <View style={styles.container}>
       <View
         style={[
           styles.icon,
-          { backgroundColor: expensesList[expenseType]?.color || "red" },
+          { backgroundColor: expenseDetails?.color || "red" },
         ]}
       >
-        <>{expensesList[expenseType]?.icon || <HomeIcon />}</>
+        <>{expenseDetails?.icon || <HomeIcon />}</>
       </View>
       <View style={styles.plate}>
         <View style={styles.expensesInfo}>

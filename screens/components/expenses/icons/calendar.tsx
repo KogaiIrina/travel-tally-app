@@ -3,7 +3,7 @@ import { SvgXml } from "react-native-svg";
 
 export default function CalendarIcon() {
   const calendar = `
-  <svg width="15" height="17" viewBox="0 0 15 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="15" height="17" viewBox="0 0 15 17" fill="none" xmlns="http://www.w3.org/2000/svg" >
   <path d="M1.06976 6.55301H14.4378" stroke="#494EBF" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M11.0815 9.48251H11.0905" stroke="#494EBF" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M7.75372 9.48251H7.76272" stroke="#494EBF" stroke-linecap="round" stroke-linejoin="round"/>

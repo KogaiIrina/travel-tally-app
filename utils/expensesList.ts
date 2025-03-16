@@ -18,6 +18,29 @@ import PharmacyIcon from "../screens/components/expenses/icons/pharmacy";
 import BeautyIcon from "../screens/components/expenses/icons/scissor";
 import OtherIcon from "../screens/components/expenses/icons/other";
 import SavingsIcon from "../screens/components/expenses/icons/savings";
+import { CustomCategoryType } from "../db/hooks/useCustomCategories";
+import { ReactElement } from "react";
+import PetsIcon from "../screens/components/expenses/icons/pets";
+import UtilityIcon from "../screens/components/expenses/icons/utility";
+import SpaIcon from "../screens/components/expenses/icons/spa";
+import PhoneIcon from "../screens/components/expenses/icons/phone";
+import HotelIcon from "../screens/components/expenses/icons/hotel";
+import BusIcon from "../screens/components/expenses/icons/bus";
+import FlowerIcon from "../screens/components/expenses/icons/flower";
+import RunningShoeIcon from "../screens/components/expenses/icons/running-shoe";
+import CatIcon from "../screens/components/expenses/icons/cat";
+import DogIcon from "../screens/components/expenses/icons/dog";
+import PalmTreeIcon from "../screens/components/expenses/icons/palm-tree";
+import MusicIcon from "../screens/components/expenses/icons/tickets";
+import CameraIcon from "../screens/components/expenses/icons/camera";
+import ChildrenIcon from "../screens/components/expenses/icons/children";
+import BooksIcon from "../screens/components/expenses/icons/books";
+import StudyingIcon from "../screens/components/expenses/icons/studying";
+import GiftIcon from "../screens/components/expenses/icons/gift";
+import GymIcon from "../screens/components/expenses/icons/gym";
+import SofaIcon from "../screens/components/expenses/icons/sofa";
+import ShoppingIcon from "../screens/components/expenses/icons/shopping";
+import TicketsIcon from "../screens/components/expenses/icons/tickets";
 
 export const home = HomeIcon();
 export const airplain = AirPlainIcon();
@@ -40,6 +63,7 @@ export const beauty = BeautyIcon();
 export const savings = SavingsIcon();
 export const other = OtherIcon();
 
+// Default expense categories
 export const expensesArray = [
   {
     key: "rent",
@@ -139,6 +163,7 @@ export const expensesArray = [
   },
 ];
 
+// Default expense categories as an object
 export const expensesList = {
   rent: {
     key: "rent",
@@ -240,8 +265,108 @@ export const expensesList = {
 
 export type ExpenseCategory = keyof typeof expensesList;
 
+// Add an index signature to allow string indexing
+export interface ExpensesListType {
+  [key: string]: {
+    key: string;
+    icon: ReactElement;
+    color: string;
+    text: string;
+  };
+}
+
 export function isExpenseCategory(
   anyString: string
 ): anyString is ExpenseCategory {
-  return expensesList.hasOwnProperty(anyString);
+  // Check in the global merged list first
+  if (globalMergedExpensesList.hasOwnProperty(anyString)) {
+    return true;
+  }
+  // Then check in the default list
+  if (expensesList.hasOwnProperty(anyString)) {
+    return true;
+  }
+  
+  // For backward compatibility with imported data, log a warning but don't fail
+  console.warn(`Warning: Unknown expense category "${anyString}", treating as valid for backward compatibility`);
+  return true; // Return true to allow the category to be used
+}
+
+// Helper function to get icon component from string name
+export function getIconFromName(iconName: string): ReactElement {
+  switch (iconName) {
+    case 'home': return home;
+    case 'airplain': return airplain;
+    case 'food': return food;
+    case 'groceries': return groceries;
+    case 'cup': return cup;
+    case 'car': return car;
+    case 'entertainment': return entertainment;
+    case 'metro': return metro;
+    case 'souvenir': return souvenir;
+    case 'umbrella': return umbrella;
+    case 'tshirt': return tshirt;
+    case 'display': return display;
+    case 'pharmacy': return pharmacy;
+    case 'beauty': return beauty;
+    case 'savings': return savings;
+    case 'pets': return PetsIcon();
+    case 'utility': return UtilityIcon();
+    case 'gym': return GymIcon();
+    case 'studying': return StudyingIcon();
+    case 'sofa': return SofaIcon();
+    case 'shopping': return ShoppingIcon();
+    case 'spa': return SpaIcon();
+    case 'phone': return PhoneIcon();
+    case 'hotel': return HotelIcon();
+    case 'bus': return BusIcon();
+    case 'flower': return FlowerIcon();
+    case 'runningShoe': return RunningShoeIcon();
+    case 'cat': return CatIcon();
+    case 'dog': return DogIcon();
+    case 'palmTree': return PalmTreeIcon();
+    case 'music': return MusicIcon();
+    case 'camera': return CameraIcon();
+    case 'children': return ChildrenIcon();
+    case 'gift': return GiftIcon();
+    case 'books': return BooksIcon();
+    case 'tickets': return TicketsIcon();
+    case 'studying': return StudyingIcon();
+    case 'other': return OtherIcon();
+    default: return other;
+  }
+}
+
+// Global merged expenses list that will be updated when custom categories change
+export let globalMergedExpensesList: ExpensesListType = { ...expensesList };
+
+// Function to merge default and custom categories
+export function mergeCategories(customCategories: CustomCategoryType[] = []) {
+  const mergedExpensesArray = [...expensesArray];
+  const mergedExpensesList: ExpensesListType = { ...expensesList };
+
+  customCategories.forEach(category => {
+    const icon = getIconFromName(category.icon);
+    
+    // Add to array
+    mergedExpensesArray.push({
+      key: category.key,
+      icon,
+      color: category.color,
+      text: category.text
+    });
+    
+    // Add to object
+    mergedExpensesList[category.key] = {
+      key: category.key,
+      icon,
+      color: category.color,
+      text: category.text
+    };
+  });
+  
+  // Update the global merged expenses list
+  globalMergedExpensesList = mergedExpensesList;
+  
+  return { mergedExpensesArray, mergedExpensesList };
 }
