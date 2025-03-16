@@ -206,7 +206,9 @@ export function NewInputView({
               <Pressable
                 onPress={() => {
                   setShowPicker(true);
-                  setIsPromoOpened(true);
+                  if (Platform.OS === "ios") {
+                    setIsPromoOpened(true);
+                  }
                 }}
               >
                 <Text style={styles.pressableText}>PICK A DATE</Text>
