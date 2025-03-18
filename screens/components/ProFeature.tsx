@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import ProBadge from './ProBadge';
-import useSubscriptionStatus from '../../utils/useSubscriptionStatus';
+import useSubscriptionStatus, { registerRefreshCallback } from '../../utils/useSubscriptionStatus';
 import { openSubscriptionModal } from './input/Purchase';
 
 interface ProFeatureProps {
@@ -19,8 +19,9 @@ interface ProFeatureProps {
 
 /**
  * A wrapper component for PRO features
- * Shows the feature with a PRO badge if user doesn't have a subscription
- * Can optionally disable interaction with the feature for non-subscribers
+ * Shows the feature with a PRO badge if user doesn't have a subscription (iOS only)
+ * Android users have access to all PRO features by default and don't see PRO badges
+ * Can optionally disable interaction with the feature for non-subscribers (iOS only)
  */
 const ProFeature: React.FC<ProFeatureProps> = ({
   children,
@@ -31,10 +32,21 @@ const ProFeature: React.FC<ProFeatureProps> = ({
   style,
   badgeOffset = { x: -30, y: -5 }
 }) => {
-  const { hasActiveSubscription, isLoading } = useSubscriptionStatus();
+  const { hasActiveSubscription, isLoading, forceRefresh } = useSubscriptionStatus();
   
-  // If user has subscription or we're still loading, just show the children
-  if (hasActiveSubscription || isLoading) {
+  // Register for global subscription status updates
+  useEffect(() => {
+    // Register this component to receive subscription updates
+    const unregister = registerRefreshCallback(forceRefresh);
+    
+    // Cleanup on unmount
+    return () => {
+      unregister();
+    };
+  }, [forceRefresh]);
+  
+  // If user is on Android, or has subscription, or we're still loading, just show the children
+  if (Platform.OS === 'android' || hasActiveSubscription || isLoading) {
     return <View style={style}>{children}</View>;
   }
   
@@ -83,7 +95,7 @@ const ProFeature: React.FC<ProFeatureProps> = ({
         <View>{children}</View>
       )}
       
-      {/* PRO Badge */}
+      {/* PRO Badge - only shown on iOS for non-subscribers */}
       <View 
         style={[
           styles.badgeContainer,

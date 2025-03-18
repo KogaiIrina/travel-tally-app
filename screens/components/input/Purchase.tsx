@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Toast, Box, VStack, Progress } from "native-base";
 import { PurchasesPackage } from "react-native-purchases";
 import { useRevenueCat } from "../../../utils/RevenueCatProvider";
-import { updateSubscriptionCache } from "../../../utils/useSubscriptionStatus";
+import { updateSubscriptionCache, triggerGlobalSubscriptionRefresh } from "../../../utils/useSubscriptionStatus";
 import BigBlueButton from "../BigBlueButton";
 import CloseIcon from "../expenses/icons/close";
 import { usePurchasePackage } from "../../../db/hooks/useSubscription";
@@ -81,31 +81,8 @@ const Purchase: React.FC<PurchaseProps> = ({
     setPurchaseStatus('processing');
     setStatusMessage('Processing your purchase...');
     
-    // Optimistically close the modal and allow user to continue using the app
-    // This happens right after the Apple payment sheet is completed
-    const optimisticCloseTimer = setTimeout(() => {
-      // Only close if we're still in processing state (payment sheet completed but backend processing)
-      if (purchaseStatus === 'processing') {
-        setIsPromoOpened(false);
-        
-        // Show a non-intrusive toast that purchase is being processed in background
-        Toast.show({
-          title: "Purchase in progress",
-          description: "Your purchase is being processed in the background. Premium features will be available shortly.",
-          placement: "top",
-          duration: 3000,
-        });
-        
-        // Call the optional callback to notify parent components
-        if (onPurchaseInitiated) {
-          onPurchaseInitiated();
-        }
-      }
-    }, 3000); // Give a short time for quick purchases to complete normally
-    
     // Set timeout to prevent indefinite loading
     const id = setTimeout(() => {
-      clearTimeout(optimisticCloseTimer);
       setIsLoading(false);
       setPurchaseStatus('error');
       setStatusMessage('Purchase is taking longer than expected. Please try again.');
@@ -123,7 +100,6 @@ const Purchase: React.FC<PurchaseProps> = ({
     onPurchase(pack, {
       onSuccess() {
         if (timeoutId) clearTimeout(timeoutId);
-        clearTimeout(optimisticCloseTimer);
         setIsLoading(false);
         setPurchaseStatus('success');
         setStatusMessage('Purchase successful!');
@@ -131,20 +107,27 @@ const Purchase: React.FC<PurchaseProps> = ({
         // Update subscription cache to immediately reflect purchase
         updateSubscriptionCache(true);
         
-        // If modal was already closed optimistically, show success toast
-        if (!isPromoOpened) {
-          Toast.show({
-            title: "Purchase completed",
-            description: "Your purchase was successful! All premium features are now available.",
-            placement: "top",
-            duration: 3000,
-          });
+        // Trigger global refresh to update all Pro badges
+        triggerGlobalSubscriptionRefresh();
+        
+        // Immediately close the paywall on successful purchase
+        setIsPromoOpened(false);
+        
+        // Show success toast
+        Toast.show({
+          title: "Purchase completed",
+          description: "Your purchase was successful! All premium features are now available.",
+          placement: "top",
+          duration: 3000,
+        });
+        
+        // Call the optional callback to notify parent components
+        if (onPurchaseInitiated) {
+          onPurchaseInitiated();
         }
-        // Otherwise modal will auto-close via the useEffect
       },
       onError(error: any) {
         if (timeoutId) clearTimeout(timeoutId);
-        clearTimeout(optimisticCloseTimer);
         setIsLoading(false);
         setPurchaseStatus('error');
         setStatusMessage(error.message || 'Purchase failed. Please try again.');
