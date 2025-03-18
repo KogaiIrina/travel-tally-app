@@ -278,6 +278,7 @@ const styles = StyleSheet.create({
   },
   pickerView: {
     backgroundColor: "white",
+    alignItems: "center",
     width: "100%",
   },
   setButton: {
