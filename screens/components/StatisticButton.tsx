@@ -74,7 +74,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
         type: expense.expense_types,
         money: Math.round(expense.total_home_currency_amount).toString(),
       };
-    });
+    }).sort((a, b) => b.value - a.value);
   }, [expenses]);
 
   const bgColor = useColorModeValue("white", "#1A1A1A");
