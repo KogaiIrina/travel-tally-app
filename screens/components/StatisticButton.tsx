@@ -15,15 +15,18 @@ import RNDateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { PieChart } from "react-native-gifted-charts";
 import { useGroupedExpenses } from "../../db/hooks/useExpenses";
-import { expensesList, globalMergedExpensesList } from "../../utils/expensesList";
+import { globalMergedExpensesList } from "../../utils/expensesList";
 import ChartContainer from "./ChartContainer";
 import EnhancedLegend from "./EnhancedLegend";
 import DateRangePicker from "./DateRangePicker";
 import { Ionicons } from "@expo/vector-icons";
+import useSubscriptionStatus from "../../utils/useSubscriptionStatus";
+import Purchase from "./input/Purchase";
 
-const getPreviousMonth = () => {
+// Get the date from one week ago
+const getOneWeekAgo = () => {
   const date = new Date();
-  date.setMonth(date.getMonth() - 1);
+  date.setDate(date.getDate() - 7);
   return date;
 };
 
@@ -36,7 +39,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
   isOpen = false,
   onClose = () => {},
 }) => {
-  const [dateStart, setDateStart] = useState(getPreviousMonth());
+  const [dateStart, setDateStart] = useState(getOneWeekAgo());
   const [dateEnd, setDateEnd] = useState(new Date());
   const [showPicker, setShowPicker] = useState<
     "none" | "endDate" | "startDate"
@@ -50,6 +53,10 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
     dateEnd,
   });
   const [tempDate, setTempDate] = useState(new Date());
+  const { hasActiveSubscription } = useSubscriptionStatus();
+
+  const [isProFeatureModalVisible, setIsProFeatureModalVisible] = useState(false);
+  const [isPromoOpened, setIsPromoOpened] = useState(false);
 
   const statisticData = useMemo(() => {
     if (!expenses) {
@@ -80,6 +87,27 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
   const bgColor = useColorModeValue("white", "#1A1A1A");
   const textColor = useColorModeValue("#333333", "#E5E5E5");
   const accentColor = "#FFB547";
+
+  // Handle date picker open and check subscription
+  const handleDatePickerPress = (pickerType: "startDate" | "endDate") => {
+    if (hasActiveSubscription) {
+      setTempDate(pickerType === "startDate" ? dateStart : dateEnd);
+      setShowPicker(pickerType);
+    } else {
+      setIsProFeatureModalVisible(true);
+    }
+  };
+
+    // Close the pro feature modal
+  const closeProFeatureModal = () => {
+    setIsProFeatureModalVisible(false);
+  };
+
+  const handleSubscribe = () => {
+    setIsProFeatureModalVisible(false);
+    setIsPromoOpened(true);
+  };
+
 
   const handleDateChange = (
     event: DateTimePickerEvent,
@@ -145,14 +173,8 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
           <DateRangePicker
             startDate={dateStart}
             endDate={dateEnd}
-            onStartDatePress={() => {
-              setTempDate(dateStart);
-              setShowPicker("startDate");
-            }}
-            onEndDatePress={() => {
-              setTempDate(dateEnd);
-              setShowPicker("endDate");
-            }}
+            onStartDatePress={() => handleDatePickerPress("startDate")}
+            onEndDatePress={() => handleDatePickerPress("endDate")}
           />
           
           <ScrollView
@@ -206,6 +228,61 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
           </ScrollView>
         </Actionsheet.Content>
       </Actionsheet>
+      
+      {/* Pro feature modal - explains the feature, doesn't handle payment */}
+      <Modal
+        transparent={true}
+        animationType="slide"
+        visible={isProFeatureModalVisible}
+        onRequestClose={closeProFeatureModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { backgroundColor: bgColor }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: textColor }]}>Pro Feature</Text>
+              <TouchableOpacity
+                onPress={closeProFeatureModal}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color={textColor} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.proFeatureContent}>
+              <Ionicons name="calendar" size={50} color={accentColor} style={styles.proFeatureIcon} />
+              <Text style={[styles.proFeatureTitle, { color: textColor }]}>
+                Custom Date Range
+              </Text>
+              <Text style={[styles.proFeatureDescription, { color: textColor }]}>
+                Custom date ranges are available exclusively for Pro users. 
+                Upgrade to Pro to access detailed expense statistics for any time period.
+              </Text>
+              <Text style={[styles.proFeatureNote, { color: textColor }]}>
+                Free users can view statistics for the past 7 days only.
+              </Text>
+            </View>
+            
+            <TouchableOpacity
+              onPress={handleSubscribe}
+              style={[styles.subscribeButton, { backgroundColor: accentColor }]}
+            >
+              <Text style={styles.subscribeButtonText}>Upgrade to Pro</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={closeProFeatureModal}
+              style={styles.cancelButton}
+            >
+              <Text style={[styles.cancelButtonText, { color: textColor }]}>Maybe Later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      
+      <Purchase 
+        isPromoOpened={isPromoOpened} 
+        setIsPromoOpened={setIsPromoOpened}
+      />
       
       {Platform.OS === "ios" ? (
         <Modal
@@ -399,6 +476,50 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  proFeatureContent: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  proFeatureIcon: {
+    marginBottom: 16,
+  },
+  proFeatureTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  proFeatureDescription: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 12,
+    paddingHorizontal: 10,
+  },
+  proFeatureNote: {
+    fontSize: 14,
+    textAlign: "center",
+    opacity: 0.7,
+    paddingHorizontal: 10,
+  },
+  subscribeButton: {
+    borderRadius: 50,
+    width: width - 100,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  subscribeButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  cancelButton: {
+    marginTop: 12,
+    padding: 10,
+  },
+  cancelButtonText: {
+    fontSize: 14,
   },
 });
 
