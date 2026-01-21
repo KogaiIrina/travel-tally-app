@@ -14,7 +14,7 @@
     "@react-native-picker/picker": "2.7.5",
     "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.14",
-    "expo": "~52.0.37",
+    "expo": "~54.0.31",
     "expo-build-properties": "~0.13.2",
     "expo-dev-client": "~5.0.13",
     "expo-document-picker": "~13.0.3",
