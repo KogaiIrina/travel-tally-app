@@ -20,9 +20,8 @@
       "buildNumber": "1"
     },
     "android": {
-      "supportsTablet": false,
       "versionCode": 15,
-      "android":{"softwareKeyboardLayoutMode": "pan"},
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
@@ -35,14 +34,16 @@
         {
           "android": {
             "minSdkVersion": 24,
-            "targetSdkVersion": 34,
-            "compileSdkVersion": 35
+            "targetSdkVersion": 36,
+            "compileSdkVersion": 36
           },
           "ios": {
             "deploymentTarget": "15.1"
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-sqlite"
     ],
     "newArchEnabled": true,
     "extra": {

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
-import { 
-  Alert, 
-  Dimensions, 
-  StyleSheet, 
-  Pressable, 
-  View, 
-  Platform, 
-  Keyboard, 
+import {
+  Alert,
+  Dimensions,
+  StyleSheet,
+  Pressable,
+  View,
+  Platform,
+  Keyboard,
   ScrollView,
   KeyboardAvoidingView,
   InteractionManager
@@ -28,15 +28,15 @@ interface BlueButtonProps {
 }
 
 // Memoized expense form to prevent unnecessary re-renders
-const ExpenseForm = memo(({ 
-  sum, 
-  handleAmountChange, 
-  handleAmountOfSpendingChange, 
-  setDate, 
-  setExpenseType, 
-  activeExpenseTypeKey, 
-  setActiveExpenseTypeKey 
-}: { 
+const ExpenseForm = memo(({
+  sum,
+  handleAmountChange,
+  handleAmountOfSpendingChange,
+  setDate,
+  setExpenseType,
+  activeExpenseTypeKey,
+  setActiveExpenseTypeKey
+}: {
   sum: string;
   handleAmountChange: (value: string) => void;
   handleAmountOfSpendingChange: (value: number) => void;
@@ -90,7 +90,7 @@ const ExpenseForm = memo(({
   );
 });
 
-const BlueButton: React.FC<BlueButtonProps> = ({ 
+const BlueButton: React.FC<BlueButtonProps> = ({
   hideUI = false,
   isOpen: externalIsOpen,
   onClose: externalOnClose
@@ -102,7 +102,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const { data: homeCountry } = useHomeCountry();
   const [currentCountry] = useSetting<number>("selectedCountry");
   const [selectedCurrency] = useSetting<string>("selectedCurrency");
-  const { mutate: addExpense, isLoading: isSavingExpense } = useAddExpense();
+  const { mutate: addExpense, isPending: isSavingExpense } = useAddExpense();
   const [activeExpenseTypeKey, setActiveExpenseTypeKey] = useState<string>();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -110,10 +110,10 @@ const BlueButton: React.FC<BlueButtonProps> = ({
 
   // Use internal state if external props are not provided
   const { isOpen: internalIsOpen, onOpen: internalOnOpen, onClose: internalOnClose } = useDisclose();
-  
+
   // Determine which values to use
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
-  
+
   // Reset all form values when closing the form
   const onClose = useCallback(() => {
     if (externalOnClose) {
@@ -121,7 +121,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     } else {
       internalOnClose();
     }
-    
+
     // Reset form state when closing
     setActiveExpenseTypeKey("");
   }, [externalOnClose, internalOnClose]);
@@ -134,7 +134,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     setExpenseType(undefined);
     setActiveExpenseTypeKey("");
     setDate(new Date());
-    
+
     // Then open the form
     internalOnOpen();
   }, [internalOnOpen]);
@@ -143,13 +143,13 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const handleAmountChange = useCallback((value: string) => {
     // Only allow valid numeric input with at most one decimal point
     const sanitizedValue = value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
-    
+
     // Ensure only one decimal point
     const parts = sanitizedValue.split('.');
-    const finalValue = parts.length > 2 
+    const finalValue = parts.length > 2
       ? `${parts[0]}.${parts.slice(1).join('')}`
       : sanitizedValue;
-    
+
     // Use InteractionManager to defer the state update on iOS
     if (Platform.OS === 'ios') {
       InteractionManager.runAfterInteractions(() => {
@@ -216,17 +216,17 @@ const BlueButton: React.FC<BlueButtonProps> = ({
 
   async function saveTransaction() {
     if (isSavingExpense) return;
-    
+
     // Double-check all required fields are filled
     if (!homeCountry)
       return Alert.alert("you have to choose home currency in the settings");
-    if (!expenseType) 
+    if (!expenseType)
       return Alert.alert("you have to choose expenses");
     if (!currentCountry)
       return Alert.alert("you have to choose current country");
     if (!amountOfSpending || amountOfSpending <= 0)
       return Alert.alert("you have to choose amount of spending");
-    if (!selectedCurrency) 
+    if (!selectedCurrency)
       return Alert.alert("you have to choose currency");
 
     const convertRate = async (
@@ -306,12 +306,12 @@ const BlueButton: React.FC<BlueButtonProps> = ({
       )}
       <Actionsheet isOpen={isOpen} onClose={onClose}>
         <Actionsheet.Content maxHeight={"100%"} marginTop={marginTop}>
-          <KeyboardAvoidingView 
+          <KeyboardAvoidingView
             style={{ width: "100%", height: "100%" }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
           >
-            <ScrollView 
+            <ScrollView
               style={{ width: "100%" }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
@@ -326,7 +326,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
                 activeExpenseTypeKey={activeExpenseTypeKey}
                 setActiveExpenseTypeKey={setActiveExpenseTypeKey}
               />
-            </ScrollView>   
+            </ScrollView>
             {!keyboardVisible && (
               <Box marginY={5}>
                 <BigBlueButton

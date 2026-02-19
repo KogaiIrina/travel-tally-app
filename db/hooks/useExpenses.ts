@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dbRead from "../utils/read";
 import dbWrite from "../utils/write";
 import { CountryType, ExpensesType } from "../../utils/types";
@@ -38,9 +38,9 @@ export default function useExpenses({
   category,
   monthYear,
 }: UseExpensesFilter) {
-  return useQuery(
-    [USE_EXPENSES_QUERY_KEY, paymentCountryId, category, monthYear],
-    () => {
+  return useQuery({
+    queryKey: [USE_EXPENSES_QUERY_KEY, paymentCountryId, category, monthYear],
+    queryFn: () => {
       const filters = [];
       const values = [];
 
@@ -80,14 +80,14 @@ export default function useExpenses({
 
       return dbRead<ExpandedExpenseType>(
         "SELECT expenses.*, countries.country, countries.flag, expenses.selected_currency" +
-          " FROM expenses, countries" +
-          " WHERE expenses.country_id = countries.id" +
-          (filters.length ? ` AND ${filters.join(" AND ")}` : "") +
-          " ORDER BY expenses.date DESC",
+        " FROM expenses, countries" +
+        " WHERE expenses.country_id = countries.id" +
+        (filters.length ? ` AND ${filters.join(" AND ")}` : "") +
+        " ORDER BY expenses.date DESC",
         values
       );
-    }
-  );
+    },
+  });
 }
 
 export function useGroupedExpenses({
@@ -96,15 +96,15 @@ export function useGroupedExpenses({
   dateStart,
   dateEnd,
 }: UseExpensesStatistics) {
-  return useQuery(
-    [
+  return useQuery({
+    queryKey: [
       USE_GROUPED_EXPENSES_QUERY_KEY,
       paymentCountryId,
       category,
       dateStart,
       dateEnd,
     ],
-    async () => {
+    queryFn: async () => {
       const filters = [];
       const values = [];
 
@@ -162,14 +162,14 @@ export function useGroupedExpenses({
         };
       });
       return formattedExpenses;
-    }
-  );
+    },
+  });
 }
 
 export function useAddExpense() {
   const queryClient = useQueryClient();
-  return useMutation(
-    (expense: Omit<ExpensesType, "id">) =>
+  return useMutation({
+    mutationFn: (expense: Omit<ExpensesType, "id">) =>
       dbWrite(
         `INSERT INTO expenses 
          (amount, amount_in_home_currency, home_currency, selected_currency, country_id, expense_types, date) 
@@ -184,26 +184,22 @@ export function useAddExpense() {
           Math.floor(+expense.date / 1000),
         ]
       ),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries([USE_EXPENSES_QUERY_KEY]);
-        queryClient.invalidateQueries([USE_TOTAL_EXPENSES_QUERY_KEY]);
-        queryClient.invalidateQueries([USE_GROUPED_EXPENSES_QUERY_KEY]);
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USE_EXPENSES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [USE_TOTAL_EXPENSES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [USE_GROUPED_EXPENSES_QUERY_KEY] });
+    },
+  });
 }
 
 export function useDeleteExpense() {
   const queryClient = useQueryClient();
-  return useMutation(
-    (id: number) => dbWrite("DELETE FROM expenses WHERE id = ?", [id]),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(USE_EXPENSES_QUERY_KEY);
-        queryClient.invalidateQueries(USE_TOTAL_EXPENSES_QUERY_KEY);
-        queryClient.invalidateQueries(USE_GROUPED_EXPENSES_QUERY_KEY);
-      },
-    }
-  );
+  return useMutation({
+    mutationFn: (id: number) => dbWrite("DELETE FROM expenses WHERE id = ?", [id]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USE_EXPENSES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [USE_TOTAL_EXPENSES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [USE_GROUPED_EXPENSES_QUERY_KEY] });
+    },
+  });
 }

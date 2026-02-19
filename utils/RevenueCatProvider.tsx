@@ -66,7 +66,7 @@ export const RevenueCatProvider = ({ children }: any) => {
     try {
       const offerings = await Purchases.getOfferings();
 
-      if (offerings.all) {
+      if (offerings?.all?.PRO?.availablePackages) {
         setPackages(offerings.all.PRO.availablePackages);
       }
       return offerings;
@@ -90,26 +90,26 @@ export const RevenueCatProvider = ({ children }: any) => {
     try {
       // First complete the purchase with RevenueCat
       const purchaseResult = await Purchases.purchasePackage(pack);
-      
+
       // Update local state immediately to provide feedback to the user
-      setUser((prevUser) => ({ 
-        ...prevUser, 
+      setUser((prevUser) => ({
+        ...prevUser,
         cookies: prevUser.cookies + 5,
         pro: true // Immediately set pro status to true
       }));
-      
+
       // Then save to database (don't block UI on this)
       try {
         await dbWrite(
           "INSERT INTO subscription (id, purchase_id, is_active, date) VALUES (?, ?, ?, ?)" +
-            " ON CONFLICT(id) DO UPDATE SET purchase_id = excluded.purchase_id, is_active = excluded.is_active, date = excluded.date",
+          " ON CONFLICT(id) DO UPDATE SET purchase_id = excluded.purchase_id, is_active = excluded.is_active, date = excluded.date",
           [1, pack.product.identifier, 1, new Date().toISOString()]
         );
       } catch (dbError) {
         // Log database error but don't fail the purchase
         console.error("Error saving subscription to database:", dbError);
       }
-      
+
       return purchaseResult;
     } catch (e: any) {
       console.error("Error during RevenueCat purchase:", e);

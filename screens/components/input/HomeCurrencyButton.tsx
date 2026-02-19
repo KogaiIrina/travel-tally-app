@@ -15,7 +15,7 @@ export default function HomeCurrencyButton() {
   const { data: homeCountry } = useHomeCountry();
   const {
     mutate: setHomeCountry,
-    isLoading: updatingHomeCountry,
+    isPending: updatingHomeCountry,
     isError: homeCountryUpdateFailed,
     isSuccess: homeCountryUpdated,
   } = useHomeCountryMutation();

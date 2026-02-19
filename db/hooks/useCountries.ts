@@ -3,7 +3,7 @@ import {
   useQuery,
   useQueryClient,
   UseQueryResult,
-} from "react-query";
+} from "@tanstack/react-query";
 import dbRead from "../utils/read";
 import dbWrite from "../utils/write";
 import { CountryType } from "../../utils/types";
@@ -11,16 +11,19 @@ import { CountryType } from "../../utils/types";
 const USE_COUNTRIES_QUERY_KEY = "useCountries";
 
 export default function useCountries() {
-  return useQuery(USE_COUNTRIES_QUERY_KEY, async () => {
-    return await dbRead<CountryType>("SELECT * FROM countries");
+  return useQuery({
+    queryKey: [USE_COUNTRIES_QUERY_KEY],
+    queryFn: async () => {
+      return await dbRead<CountryType>("SELECT * FROM countries");
+    },
   });
 }
 
 export function useCountriesMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation(
-    ({
+  return useMutation({
+    mutationFn: ({
       country,
       flag,
       currency,
@@ -34,18 +37,16 @@ export function useCountriesMutation() {
         [country, flag, currency]
       );
     },
-    {
-      onSuccess: () => queryClient.invalidateQueries(USE_COUNTRIES_QUERY_KEY),
-    }
-  );
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [USE_COUNTRIES_QUERY_KEY] }),
+  });
 }
 
 export function useCountryById(
   id: number | undefined
 ): UseQueryResult<CountryType | undefined> {
-  return useQuery(
-    ["country", id],
-    async () => {
+  return useQuery({
+    queryKey: ["country", id],
+    queryFn: async () => {
       if (id === undefined) {
         throw new Error("id is undefined");
       }
@@ -55,8 +56,6 @@ export function useCountryById(
       );
       return data[0];
     },
-    {
-      enabled: id !== undefined,
-    }
-  );
+    enabled: id !== undefined,
+  });
 }

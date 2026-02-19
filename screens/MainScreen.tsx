@@ -1,7 +1,7 @@
 import React from "react";
 import { NativeBaseProvider } from "native-base";
 import { StyleSheet, View, Image } from "react-native";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ExpensesScreen from "./ExpensesScreen";
 import { loadSettings, useSetting } from "../utils/settings";
 import AppIntroSlider from "react-native-app-intro-slider";
@@ -11,7 +11,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // TODO: Remove the config option once updated to RN 0.65 https://github.com/facebook/react-native/commit/480dabd66547a60522249eda203a3eb1934b02e5
-      cacheTime: 60 * 1000,
+      gcTime: 60 * 1000,
     },
   },
 });

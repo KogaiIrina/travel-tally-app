@@ -1,4 +1,4 @@
-import { StorageAccessFramework } from "expo-file-system";
+import { StorageAccessFramework } from "expo-file-system/legacy";
 
 const DOWNLOADS_LIBRARY = "Download";
 

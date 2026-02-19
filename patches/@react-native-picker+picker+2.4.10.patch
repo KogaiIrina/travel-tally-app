@@ -1,0 +1,36 @@
+diff --git a/node_modules/@react-native-picker/picker/android/build.gradle b/node_modules/@react-native-picker/picker/android/build.gradle
+index 9cff5cd..c12bd5c 100644
+--- a/node_modules/@react-native-picker/picker/android/build.gradle
++++ b/node_modules/@react-native-picker/picker/android/build.gradle
+@@ -7,7 +7,7 @@ buildscript {
+     }
+ 
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:3.2.1'
++        classpath 'com.android.tools.build:gradle:7.0.4'
+     }
+ }
+ 
+@@ -21,7 +21,7 @@ def getExtOrIntegerDefault(name) {
+ }
+ 
+ apply plugin: 'com.android.library'
+-
++apply plugin: 'kotlin-android'
+ android {
+   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+   buildToolsVersion getExtOrDefault('buildToolsVersion')
+@@ -31,6 +31,7 @@ android {
+     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
+     vectorDrawables.useSupportLibrary=getExtOrDefault('vector_drawable_use_support_library')
+   }
++  namespace "com.reactnativecommunity.picker"
+ }
+ 
+ repositories {
+@@ -41,4 +42,5 @@ repositories {
+ dependencies {
+   //noinspection GradleDynamicVersion
+   api 'com.facebook.react:react-native:+'
++  implementation "androidx.appcompat:appcompat:1.3.0"
+ }

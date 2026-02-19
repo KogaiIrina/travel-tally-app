@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export enum CurrentScreen {
   Home = "home",
@@ -12,13 +12,13 @@ export function useCurrentScreen(): [
   (screen: CurrentScreen) => void
 ] {
   const queryClient = useQueryClient();
-  const result = useQuery<CurrentScreen>(
-    ["useCurrentScreen"],
-    () => currentScreen
-  );
+  const result = useQuery<CurrentScreen>({
+    queryKey: ["useCurrentScreen"],
+    queryFn: () => currentScreen,
+  });
   const setCurrentScreen = (screen: CurrentScreen) => {
     currentScreen = screen;
-    queryClient.invalidateQueries("useCurrentScreen");
+    queryClient.invalidateQueries({ queryKey: ["useCurrentScreen"] });
   };
   return [result.data || CurrentScreen.Home, setCurrentScreen];
 }

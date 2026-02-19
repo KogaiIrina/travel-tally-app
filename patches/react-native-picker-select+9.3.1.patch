@@ -1,0 +1,12 @@
+{
+  "homepage": "https://github.com/lawnstarter/react-native-picker-select#readme",
+  "peerDependencies": {
+    "react": ">=16.0.0",
+    "react-native": ">=0.57.0"
+  },
+  "peerDependenciesMeta": {
+    "@react-native-picker/picker": {
+      "optional": true
+    }
+  }
+} 
