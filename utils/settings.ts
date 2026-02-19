@@ -1,5 +1,5 @@
-import * as FileSystem from "expo-file-system";
-import { QueryClient, useQuery, useQueryClient } from "react-query";
+import * as FileSystem from "expo-file-system/legacy";
+import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const CACHE_KEY_SETTING = (key: string) => ["useSetting", key];
 const SETTINGS_PATH = FileSystem.documentDirectory + "settings.json";
@@ -14,7 +14,7 @@ export async function loadSettings(queryClient?: QueryClient) {
   const settings = await FileSystem.readAsStringAsync(SETTINGS_PATH);
   globalSettings = JSON.parse(settings);
   // invalidate cache for all settings
-  queryClient?.invalidateQueries("useSetting");
+  queryClient?.invalidateQueries({ queryKey: ["useSetting"] });
 }
 
 async function saveSettings() {
@@ -40,15 +40,18 @@ export function useSetting<T>(
 
   const setSetting = (value: T) => {
     globalSettings[key] = value;
-    queryClient.invalidateQueries(queryKey);
+    queryClient.invalidateQueries({ queryKey });
     // TODO: debounce the saveSettings call
     saveSettings().catch(console.error);
   };
 
-  const queryResult = useQuery<T>(
+  const queryResult = useQuery({
     queryKey,
-    () => globalSettings[key] ?? defaultValue
-  );
+    queryFn: () => {
+      const value = globalSettings[key] ?? defaultValue;
+      return (value === undefined ? null : value) as T;
+    },
+  });
 
   return [queryResult.data ?? defaultValue, setSetting];
 }

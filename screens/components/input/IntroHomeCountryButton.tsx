@@ -14,7 +14,7 @@ export default function InputButton() {
   const { data: countries } = useCountries();
   const {
     mutate: setHomeCountry,
-    isLoading: updatingHomeCountry,
+    isPending: updatingHomeCountry,
     isError: homeCountryUpdateFailed,
     isSuccess: homeCountryUpdated,
   } = useHomeCountryMutation();
@@ -77,7 +77,7 @@ export default function InputButton() {
             >
               <View style={styles.container}>
                 <Text style={styles.text}>Home Currency</Text>
-                
+
                 {/* Using our new CustomDropdown component */}
                 <View style={styles.dropdownWrapper}>
                   <CustomDropdown
@@ -90,14 +90,14 @@ export default function InputButton() {
                     showIcons={false}
                   />
                 </View>
-                
+
                 {/* Show the selected country */}
                 {selectedCountryId && (
                   <Text style={styles.selectedText}>
                     Selected: {selectedCountry?.country || 'Unknown'}
                   </Text>
                 )}
-                
+
                 <YellowButton
                   disabled={updatingHomeCountry}
                   onPress={onSave}

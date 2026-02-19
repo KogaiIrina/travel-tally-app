@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import dbRead from "../utils/read";
 import { TotalSum } from "../../utils/types";
 
@@ -15,9 +15,9 @@ export default function useTotalExpenses({
   category,
   monthYear,
 }: UseExpensesFilter) {
-  return useQuery(
-    [USE_TOTAL_EXPENSES_QUERY_KEY, paymentCountryId, category, monthYear],
-    () => {
+  return useQuery({
+    queryKey: [USE_TOTAL_EXPENSES_QUERY_KEY, paymentCountryId, category, monthYear],
+    queryFn: () => {
       const filters = [];
       const values = [];
 
@@ -57,10 +57,10 @@ export default function useTotalExpenses({
 
       return dbRead<TotalSum>(
         "SELECT SUM(amount_in_home_currency) as total FROM expenses, home_country, countries" +
-          " WHERE home_country.home_country_id = countries.id AND expenses.home_currency = countries.currency" +
-          (filters.length ? ` AND ${filters.join(" AND ")}` : ""),
+        " WHERE home_country.home_country_id = countries.id AND expenses.home_currency = countries.currency" +
+        (filters.length ? ` AND ${filters.join(" AND ")}` : ""),
         values
       );
-    }
-  );
+    },
+  });
 }
