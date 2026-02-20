@@ -246,8 +246,21 @@ const BlueButton: React.FC<BlueButtonProps> = ({
         currentRateInfo = await fetch(fallbackUrl);
       }
 
+      // Add fallback to 'latest' if the specific date is not yet available (often happens for today's date)
       if (!currentRateInfo.ok) {
-        throw new Error("Both primary and fallback fetch failed");
+        const latestUrl = `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${selectedCurrencyLowerCase}.json`;
+        currentRateInfo = await fetch(latestUrl);
+      }
+
+      if (!currentRateInfo.ok) {
+        const latestFallbackUrl = `https://latest.currency-api.pages.dev/v1/currencies/${selectedCurrencyLowerCase}.json`;
+        currentRateInfo = await fetch(latestFallbackUrl);
+      }
+
+      console.log("saveTransaction", homeCurrencyLowerCase, selectedCurrencyLowerCase)
+
+      if (!currentRateInfo.ok) {
+        throw new Error("All primary and fallback currency fetches failed");
       }
 
       const currentRate = await currentRateInfo.json();
