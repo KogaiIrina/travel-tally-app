@@ -24,19 +24,19 @@ export default function BigBlueButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#2C65E1",
+    backgroundColor: "#4169E1",
     borderRadius: 16,
     width: 340,
     height: 56,
     justifyContent: "center",
     alignItems: "center",
-    fontWeight: "800",
     alignSelf: "center",
-    marginBottom: 40,
+    marginBottom: 10,
   },
   buttonText: {
     color: "#FFFFFF",
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
 });

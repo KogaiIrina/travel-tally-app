@@ -11,12 +11,14 @@ export type ExpandedExpenseType = ExpensesType & CountryType;
 
 export interface UseExpensesFilter {
   paymentCountryId?: number;
+  tripId?: number;
   category?: string;
   monthYear?: string;
 }
 
 export interface UseExpensesStatistics {
   paymentCountryId?: number;
+  tripId?: number;
   category?: string;
   monthYear?: string;
   dateStart?: Date;
@@ -35,11 +37,12 @@ export interface UseGroupedExpenses {
 
 export default function useExpenses({
   paymentCountryId,
+  tripId,
   category,
   monthYear,
 }: UseExpensesFilter) {
   return useQuery({
-    queryKey: [USE_EXPENSES_QUERY_KEY, paymentCountryId, category, monthYear],
+    queryKey: [USE_EXPENSES_QUERY_KEY, paymentCountryId, tripId, category, monthYear],
     queryFn: () => {
       const filters = [];
       const values = [];
@@ -47,6 +50,11 @@ export default function useExpenses({
       if (paymentCountryId) {
         filters.push("expenses.country_id = ?");
         values.push(paymentCountryId);
+      }
+
+      if (tripId) {
+        filters.push("expenses.trip_id = ?");
+        values.push(tripId);
       }
 
       if (category) {
@@ -92,6 +100,7 @@ export default function useExpenses({
 
 export function useGroupedExpenses({
   paymentCountryId,
+  tripId,
   category,
   dateStart,
   dateEnd,
@@ -100,6 +109,7 @@ export function useGroupedExpenses({
     queryKey: [
       USE_GROUPED_EXPENSES_QUERY_KEY,
       paymentCountryId,
+      tripId,
       category,
       dateStart,
       dateEnd,
@@ -111,6 +121,11 @@ export function useGroupedExpenses({
       if (paymentCountryId) {
         filters.push("expenses.country_id = ?");
         values.push(paymentCountryId);
+      }
+
+      if (tripId) {
+        filters.push("expenses.trip_id = ?");
+        values.push(tripId);
       }
 
       if (category) {
@@ -172,8 +187,8 @@ export function useAddExpense() {
     mutationFn: (expense: Omit<ExpensesType, "id">) =>
       dbWrite(
         `INSERT INTO expenses 
-         (amount, amount_in_home_currency, home_currency, selected_currency, country_id, expense_types, date) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         (amount, amount_in_home_currency, home_currency, selected_currency, country_id, expense_types, date, trip_id) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           expense.amount,
           expense.amount_in_home_currency,
@@ -182,6 +197,7 @@ export function useAddExpense() {
           expense.country_id,
           expense.expense_types,
           Math.floor(+expense.date / 1000),
+          expense.trip_id || null
         ]
       ),
     onSuccess: () => {

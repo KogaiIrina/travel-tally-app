@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, SafeAreaView } from "react-native";
 import React, { useState, useEffect } from "react";
-import { Modal, Toast, Box, VStack, Progress } from "native-base";
+import { Toast, Box, VStack, Progress } from "native-base";
 import { PurchasesPackage } from "react-native-purchases";
 import { useRevenueCat } from "../../../utils/RevenueCatProvider";
 import { updateSubscriptionCache, triggerGlobalSubscriptionRefresh } from "../../../utils/useSubscriptionStatus";
@@ -71,7 +71,7 @@ const Purchase: React.FC<PurchaseProps> = ({
         setIsPromoOpened(false);
         setPurchaseStatus('idle');
       }, 1500);
-      
+
       return () => clearTimeout(successTimer);
     }
   }, [purchaseStatus, setIsPromoOpened]);
@@ -80,13 +80,13 @@ const Purchase: React.FC<PurchaseProps> = ({
     setIsLoading(true);
     setPurchaseStatus('processing');
     setStatusMessage('Processing your purchase...');
-    
+
     // Set timeout to prevent indefinite loading
     const id = setTimeout(() => {
       setIsLoading(false);
       setPurchaseStatus('error');
       setStatusMessage('Purchase is taking longer than expected. Please try again.');
-      
+
       Toast.show({
         title: "Purchase timeout",
         description: "The purchase is taking longer than expected. The transaction may still be processing. Please check your subscriptions later.",
@@ -94,25 +94,25 @@ const Purchase: React.FC<PurchaseProps> = ({
         duration: 5000,
       });
     }, PURCHASE_TIMEOUT);
-    
+
     setTimeoutId(id);
-    
+
     onPurchase(pack, {
       onSuccess() {
         if (timeoutId) clearTimeout(timeoutId);
         setIsLoading(false);
         setPurchaseStatus('success');
         setStatusMessage('Purchase successful!');
-        
+
         // Update subscription cache to immediately reflect purchase
         updateSubscriptionCache(true);
-        
+
         // Trigger global refresh to update all Pro badges
         triggerGlobalSubscriptionRefresh();
-        
+
         // Immediately close the paywall on successful purchase
         setIsPromoOpened(false);
-        
+
         // Show success toast
         Toast.show({
           title: "Purchase completed",
@@ -120,7 +120,7 @@ const Purchase: React.FC<PurchaseProps> = ({
           placement: "top",
           duration: 3000,
         });
-        
+
         // Call the optional callback to notify parent components
         if (onPurchaseInitiated) {
           onPurchaseInitiated();
@@ -131,7 +131,7 @@ const Purchase: React.FC<PurchaseProps> = ({
         setIsLoading(false);
         setPurchaseStatus('error');
         setStatusMessage(error.message || 'Purchase failed. Please try again.');
-        
+
         Toast.show({
           title: "Purchase failed",
           description: error.message || "An error occurred during purchase. Please try again.",
@@ -182,69 +182,71 @@ const Purchase: React.FC<PurchaseProps> = ({
   };
 
   return (
-    <Modal isOpen={isPromoOpened} style={styles.paywallModal}>
-      <View style={styles.container}>
-        <TouchableOpacity
-          onPress={() => {
-            if (!isLoading) {
-              setIsPromoOpened(false);
-            }
-          }}
-          style={styles.closeIcon}
-          disabled={isLoading}
-        >
-          <CloseIcon />
-        </TouchableOpacity>
-        <View style={styles.promo}>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: "bold",
+    <Modal visible={isPromoOpened} animationType="slide" transparent={false} onRequestClose={() => { if (!isLoading) setIsPromoOpened(false); }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+        <View style={styles.container}>
+          <TouchableOpacity
+            onPress={() => {
+              if (!isLoading) {
+                setIsPromoOpened(false);
+              }
             }}
+            style={styles.closeIcon}
+            disabled={isLoading}
           >
-            Unlock Unlimited Experience
-          </Text>
-        </View>
-        <View style={styles.subscriptionOptions}>
-          {packages.map((pack) => (
-            <TouchableOpacity
-              key={pack.identifier}
-              onPress={() => setSelectedPackage(pack)}
-              style={[
-                styles.button,
-                selectedPackage?.identifier === pack.identifier && styles.selectedButton
-              ]}
-              disabled={isLoading}
+            <CloseIcon />
+          </TouchableOpacity>
+          <View style={styles.promo}>
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: "bold",
+              }}
             >
-              <View style={styles.promoDescription}>
-                <View style={styles.text}>
-                  <Text style={styles.packageTitle}>{pack.product.title}</Text>
-                  <Text style={styles.packagePrice}>{pack.product.priceString}</Text>
+              Unlock Unlimited Experience
+            </Text>
+          </View>
+          <View style={styles.subscriptionOptions}>
+            {packages.map((pack) => (
+              <TouchableOpacity
+                key={pack.identifier}
+                onPress={() => setSelectedPackage(pack)}
+                style={[
+                  styles.button,
+                  selectedPackage?.identifier === pack.identifier && styles.selectedButton
+                ]}
+                disabled={isLoading}
+              >
+                <View style={styles.promoDescription}>
+                  <View style={styles.text}>
+                    <Text style={styles.packageTitle}>{pack.product.title}</Text>
+                    <Text style={styles.packagePrice}>{pack.product.priceString}</Text>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))}
+          </View>
+          <BigBlueButton
+            text={isLoading ? "Processing..." : "Subscribe"}
+            onPress={() => {
+              if (selectedPackage) {
+                handlePurchase(selectedPackage);
+              } else {
+                Toast.show({
+                  title: "Selection required",
+                  description: "Please select a subscription package first.",
+                  placement: "top",
+                  duration: 3000,
+                });
+              }
+            }}
+            isActive={selectedPackage ? true : false}
+            disabled={isLoading}
+          />
+
+          {renderPurchaseStatus()}
         </View>
-        <BigBlueButton
-          text={isLoading ? "Processing..." : "Subscribe"}
-          onPress={() => {
-            if (selectedPackage) {
-              handlePurchase(selectedPackage);
-            } else {
-              Toast.show({
-                title: "Selection required",
-                description: "Please select a subscription package first.",
-                placement: "top",
-                duration: 3000,
-              });
-            }
-          }}
-          isActive={selectedPackage ? true : false}
-          disabled={isLoading}
-        />
-        
-        {renderPurchaseStatus()}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Pressable, Text, View, Dimensions } from "react-native";
-import DownArrowIcon from "../expenses/icons/down-arrow";
+import { StyleSheet, Pressable, Text, View, } from "react-native";
 import { currencyList } from "../../../utils/currencyList";
+import { Ionicons } from "@expo/vector-icons";
 import { useSetting } from "../../../utils/settings";
 import useCountries from "../../../db/hooks/useCountries";
 import CustomDropdown from "../CustomDropdown";
@@ -55,14 +55,14 @@ export default function ChooseCurrencyButton() {
 
   return (
     <View style={styles.container}>
-      <Pressable 
-        style={styles.button} 
+      <Pressable
+        style={styles.button}
         onPress={handleButtonPress}
       >
         <Text style={styles.currencySign}>{chosenCurrency || "💰"}</Text>
-        <DownArrowIcon />
+        <Ionicons name="chevron-down" size={16} color="#4169E1" />
       </Pressable>
-      
+
       {/* Hidden dropdown that will be triggered by the button */}
       <View style={styles.hiddenDropdown}>
         <CustomDropdown
@@ -94,21 +94,18 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   currencySign: {
-    color: "#2C65E1",
-    fontSize: 18,
+    color: "#1A1A1A",
+    fontSize: 14,
     fontWeight: "600",
-    lineHeight: 24,
   },
   button: {
-    backgroundColor: "#F1F5FF",
-    height: 64,
-    width: 117,
-    borderRadius: 16,
+    backgroundColor: "#F0F2F5",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
     alignItems: "center",
     flexDirection: "row",
-    paddingLeft: 25,
-    justifyContent: "space-between",
-    paddingRight: 15,
+    gap: 3,
   },
   iconText: {
     fontSize: 18,

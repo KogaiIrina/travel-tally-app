@@ -23,6 +23,18 @@ export interface ExpensesType {
   country_id: number;
   expense_types: string;
   date: Date;
+  trip_id?: number;
+}
+
+export interface TripType {
+  id: number;
+  name: string;
+  country_id: number;
+  base_currency: string;
+  target_currency: string;
+  start_date?: Date;
+  end_date?: Date;
+  is_active: boolean;
 }
 
 export interface TotalSum {

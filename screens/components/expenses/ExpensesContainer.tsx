@@ -25,7 +25,7 @@ export default function ExpensesContainer({
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [isPromoOpened, setIsPromoOpened] = useState(false);
   const { hasActiveSubscription } = useSubscriptionStatus();
-  
+
   // Check if user has access to Pro features (iOS with subscription or any Android user)
   const hasProAccess = Platform.OS === 'android' || hasActiveSubscription;
 
@@ -84,20 +84,22 @@ export default function ExpensesContainer({
       key="add-category"
       style={styles.addCategoryButton}
       onPress={onAddCategoryPress}
+      activeOpacity={0.7}
     >
-      <Ionicons name="add-circle-outline" size={24} color="#2C65E1" />
-      <Text style={styles.addCategoryText}>Add {'\n'} Category</Text>
+      <Ionicons name="add-circle" size={30} color="#4169E1" />
+      <Text style={styles.addCategoryText}>New</Text>
     </TouchableOpacity>
   );
 
   // Wrap the Add Category button with ProFeature for non-subscribers on iOS only
   const addCategoryButton = Platform.OS === 'ios' && !hasActiveSubscription ? (
-    <ProFeature 
+    <ProFeature
       key="add-category-pro-feature"
       badgeSize="small"
       badgePosition="top-right"
-      badgeOffset={{ x: -10, y: 10 }}
+      badgeOffset={{ x: -5, y: -2 }}
       disableInteraction={false}
+      style={{ flex: 1 }}
     >
       {addCategoryButtonContent}
     </ProFeature>
@@ -106,7 +108,7 @@ export default function ExpensesContainer({
   );
 
   // Calculate rows for the grid display
-  const itemsPerRow = 4;
+  const itemsPerRow = 3;
   const rows = [];
   for (let i = 0; i < buttons.length; i += itemsPerRow) {
     rows.push(buttons.slice(i, i + itemsPerRow));
@@ -120,6 +122,12 @@ export default function ExpensesContainer({
     rows.push([addCategoryButton]);
   }
 
+  // Fill the last row with invisible spacers to maintain consistent tile widths
+  const finalRow = rows[rows.length - 1];
+  while (finalRow.length < itemsPerRow) {
+    finalRow.push(<View key={`spacer-${finalRow.length}`} style={{ flex: 1 }} />);
+  }
+
   return (
     <>
       <ScrollView style={styles.container}>
@@ -129,12 +137,12 @@ export default function ExpensesContainer({
           </View>
         ))}
       </ScrollView>
-      
-      <AddCategoryModal 
-        visible={showAddCategory} 
-        onClose={onCloseAddCategory} 
+
+      <AddCategoryModal
+        visible={showAddCategory}
+        onClose={onCloseAddCategory}
       />
-      
+
       {/* Render the paywall modal */}
       {getPaywall()}
     </>
@@ -143,32 +151,27 @@ export default function ExpensesContainer({
 
 const styles = StyleSheet.create({
   container: {
-    maxWidth: "90%",
-    left: "5%",
+    width: '100%',
+    paddingHorizontal: 16,
   },
   expensesRow: {
-    marginBottom: 5,
+    marginBottom: 10,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
+    gap: 10,
   },
   addCategoryButton: {
     flex: 1,
-    marginLeft: 5,
     alignItems: "center",
     justifyContent: "center",
-    height: 80,
-    width: 80,
-    borderRadius: 15,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "#2C65E1",
-    backgroundColor: "rgba(44, 101, 225, 0.1)",
+    height: 90,
+    borderRadius: 18,
+    backgroundColor: "#E8EEFF",
   },
   addCategoryText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#2C65E1",
-    marginTop: 4,
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#4169E1",
+    marginTop: 3,
   },
 });

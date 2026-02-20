@@ -3,6 +3,7 @@ import { NativeBaseProvider } from "native-base";
 import { StyleSheet, View, Image } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ExpensesScreen from "./ExpensesScreen";
+import TripsScreen from "./TripsScreen";
 import { loadSettings, useSetting } from "../utils/settings";
 import AppIntroSlider from "react-native-app-intro-slider";
 import { Slide, slides } from "../utils/slides";
@@ -18,6 +19,7 @@ const queryClient = new QueryClient({
 
 export default function MainScreen() {
   const [showRealApp, setShowRealApp] = useSetting<boolean>("showRealApp");
+  const [selectedTripId, setSelectedTripId] = React.useState<number | null>(null);
 
   const _renderItem = ({ item }: { item: Slide }) => {
     if ("component" in item) {
@@ -40,7 +42,14 @@ export default function MainScreen() {
     return (
       <QueryClientProvider client={queryClient}>
         <NativeBaseProvider>
-          <ExpensesScreen />
+          {selectedTripId ? (
+            <ExpensesScreen
+              tripId={selectedTripId}
+              onBack={() => setSelectedTripId(null)}
+            />
+          ) : (
+            <TripsScreen onSelectTrip={(id) => setSelectedTripId(id)} />
+          )}
         </NativeBaseProvider>
       </QueryClientProvider>
     );

@@ -22,15 +22,9 @@ export default function ExpenseButton({
         styles.container,
         {
           backgroundColor: color,
-          opacity: active ? 0.6 : 1,
-          shadowColor: active ? color : "#fff",
-          shadowOffset: {
-            width: 10,
-            height: 12,
-          },
-          shadowOpacity: active ? 0.58 : 0,
-          shadowRadius: active ? 16.0 : 0,
-          elevation: active ? 24 : 0,
+          borderWidth: active ? 3 : 0,
+          borderColor: active ? "#1A1A1A" : "transparent",
+          transform: [{ scale: active ? 0.95 : 1 }],
         },
       ]}
       onPress={onPress}
@@ -46,19 +40,18 @@ export default function ExpenseButton({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginLeft: 5,
     alignItems: "center",
     justifyContent: "center",
-    height: 80,
-    width: 80,
-    borderRadius: 15,
+    height: 90,
+    borderRadius: 18,
   },
   caption: {
     fontSize: 12,
     alignSelf: "center",
-    color: "rgba(255, 255, 255, 1)",
-    lineHeight: 14,
-    marginTop: 4,
+    color: "#FFFFFF",
+    fontWeight: "600",
+    lineHeight: 15,
+    marginTop: 6,
     marginHorizontal: 4,
   },
 });

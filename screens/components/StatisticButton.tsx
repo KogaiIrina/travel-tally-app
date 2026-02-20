@@ -33,11 +33,13 @@ const getOneWeekAgo = () => {
 interface StatisticButtonProps {
   isOpen?: boolean;
   onClose?: () => void;
+  tripId?: number;
 }
 
 const StatisticButton: React.FC<StatisticButtonProps> = ({
   isOpen = false,
-  onClose = () => {},
+  onClose = () => { },
+  tripId,
 }) => {
   const [dateStart, setDateStart] = useState(getOneWeekAgo());
   const [dateEnd, setDateEnd] = useState(new Date());
@@ -51,6 +53,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
   } = useGroupedExpenses({
     dateStart,
     dateEnd,
+    tripId,
   });
   const [tempDate, setTempDate] = useState(new Date());
   const { hasActiveSubscription } = useSubscriptionStatus();
@@ -73,7 +76,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
           money: Math.round(expense.total_home_currency_amount).toString(),
         };
       }
-      
+
       return {
         value: expense.total_home_currency_amount,
         text: `${Math.round(expense.percentage)}%`,
@@ -98,7 +101,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
     }
   };
 
-    // Close the pro feature modal
+  // Close the pro feature modal
   const closeProFeatureModal = () => {
     setIsProFeatureModalVisible(false);
   };
@@ -150,7 +153,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
     const endDay = dateEnd.getDate();
     const endMonth = dateEnd.toLocaleString('default', { month: 'short' });
     const endYear = dateEnd.getFullYear();
-    
+
     if (dateStart.getFullYear() === endYear) {
       return `${startDay} ${startMonth} - ${endDay} ${endMonth}, ${endYear}`;
     } else {
@@ -169,14 +172,14 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
               <Ionicons name="close" size={24} color={textColor} />
             </TouchableOpacity>
           </View>
-          
+
           <DateRangePicker
             startDate={dateStart}
             endDate={dateEnd}
             onStartDatePress={() => handleDatePickerPress("startDate")}
             onEndDatePress={() => handleDatePickerPress("endDate")}
           />
-          
+
           <ScrollView
             contentContainerStyle={styles.scrollViewContent}
             showsVerticalScrollIndicator={false}
@@ -187,8 +190,8 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
                 <Text style={[styles.loadingText, { color: textColor }]}>Loading data...</Text>
               </View>
             ) : statisticData.length > 0 ? (
-              <ChartContainer 
-                title="Expense Distribution" 
+              <ChartContainer
+                title="Expense Distribution"
                 subtitle={formatDateRange()}
               >
                 <View style={styles.chartWrapper}>
@@ -228,7 +231,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
           </ScrollView>
         </Actionsheet.Content>
       </Actionsheet>
-      
+
       {/* Pro feature modal - explains the feature, doesn't handle payment */}
       <Modal
         transparent={true}
@@ -247,28 +250,28 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
                 <Ionicons name="close" size={24} color={textColor} />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.proFeatureContent}>
               <Ionicons name="calendar" size={50} color={accentColor} style={styles.proFeatureIcon} />
               <Text style={[styles.proFeatureTitle, { color: textColor }]}>
                 Custom Date Range
               </Text>
               <Text style={[styles.proFeatureDescription, { color: textColor }]}>
-                Custom date ranges are available exclusively for Pro users. 
+                Custom date ranges are available exclusively for Pro users.
                 Upgrade to Pro to access detailed expense statistics for any time period.
               </Text>
               <Text style={[styles.proFeatureNote, { color: textColor }]}>
                 Free users can view statistics for the past 7 days only.
               </Text>
             </View>
-            
+
             <TouchableOpacity
               onPress={handleSubscribe}
               style={[styles.subscribeButton, { backgroundColor: accentColor }]}
             >
               <Text style={styles.subscribeButtonText}>Upgrade to Pro</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               onPress={closeProFeatureModal}
               style={styles.cancelButton}
@@ -278,12 +281,12 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
           </View>
         </View>
       </Modal>
-      
-      <Purchase 
-        isPromoOpened={isPromoOpened} 
+
+      <Purchase
+        isPromoOpened={isPromoOpened}
         setIsPromoOpened={setIsPromoOpened}
       />
-      
+
       {Platform.OS === "ios" ? (
         <Modal
           transparent={true}
@@ -308,7 +311,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
                   <Ionicons name="close" size={24} color={textColor} />
                 </TouchableOpacity>
               </View>
-              
+
               {showPicker === "startDate" && (
                 <RNDateTimePicker
                   value={tempDate}
@@ -331,7 +334,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
                   style={styles.picker}
                 />
               )}
-              
+
               <TouchableOpacity
                 onPress={handleSetDate}
                 style={[styles.setButton, { backgroundColor: accentColor }]}

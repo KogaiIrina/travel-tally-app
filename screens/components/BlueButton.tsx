@@ -9,22 +9,27 @@ import {
   Keyboard,
   ScrollView,
   KeyboardAvoidingView,
-  InteractionManager
+  InteractionManager,
+  Modal,
+  SafeAreaView,
+  Text,
 } from "react-native";
-import { Actionsheet, Box, useDisclose } from "native-base";
+import { Ionicons } from "@expo/vector-icons";
+import { useDisclose } from "native-base";
 import PlusIcon from "./expenses/icons/plus";
 import ExpensesContainer from "./expenses/ExpensesContainer";
-import CountrySelector from "./selector/CountrySelector";
 import BigBlueButton from "./BigBlueButton";
 import { NewInputView } from "./input/InputFrame";
 import { useAddExpense } from "../../db/hooks/useExpenses";
 import useHomeCountry from "../../db/hooks/useHomeCountry";
 import { useSetting } from "../../utils/settings";
+import { useActiveTrip } from "../../db/hooks/useTrips";
 
 interface BlueButtonProps {
   hideUI?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
+  tripId?: number;
 }
 
 // Memoized expense form to prevent unnecessary re-renders
@@ -55,26 +60,20 @@ const ExpenseForm = memo(({
     />
   ), [sum, handleAmountChange, handleAmountOfSpendingChange, setDate]);
 
-  // Reset expense type when sum changes to empty (form reset)
-  useEffect(() => {
-    if (sum === "" && activeExpenseTypeKey) {
-      setActiveExpenseTypeKey("");
-      setExpenseType("");
-    }
-  }, [sum, activeExpenseTypeKey, setActiveExpenseTypeKey, setExpenseType]);
+  // Form resets are handled explicitly in the parent BlueButton's onOpen handler.
 
   return (
     <>
       {InputComponent}
-      <View style={{ flex: 1 }}>
-        <CountrySelector />
-        <Box marginTop={5} flex={1}>
+      <View style={{ flex: 1, paddingTop: 8 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8, paddingHorizontal: 20, marginBottom: 12 }}>CATEGORY</Text>
           <ExpensesContainer
             setExpenseType={setExpenseType}
             activeExpenseTypeKey={activeExpenseTypeKey}
             setActiveExpenseTypeKey={setActiveExpenseTypeKey}
           />
-        </Box>
+        </View>
       </View>
     </>
   );
@@ -93,18 +92,20 @@ const ExpenseForm = memo(({
 const BlueButton: React.FC<BlueButtonProps> = ({
   hideUI = false,
   isOpen: externalIsOpen,
-  onClose: externalOnClose
+  onClose: externalOnClose,
+  tripId
 }) => {
   const [amountOfSpending, setAmountOfSpending] = useState<number>();
   const [date, setDate] = useState(new Date());
   const [sum, changeSum] = useState("");
   const [expenseType, setExpenseType] = useState<string>();
   const { data: homeCountry } = useHomeCountry();
-  const [currentCountry] = useSetting<number>("selectedCountry");
-  const [selectedCurrency] = useSetting<string>("selectedCurrency");
+  const [currentCountry, setCurrentCountry] = useSetting<number>("selectedCountry");
+  const [selectedCurrency, setSelectedCurrency] = useSetting<string>("selectedCurrency");
   const { mutate: addExpense, isPending: isSavingExpense } = useAddExpense();
   const [activeExpenseTypeKey, setActiveExpenseTypeKey] = useState<string>();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const { data: activeTrip } = useActiveTrip();
 
   const isoDate = date.toISOString().split("T")[0];
 
@@ -113,6 +114,28 @@ const BlueButton: React.FC<BlueButtonProps> = ({
 
   // Determine which values to use
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+
+  // Track if we were previously open to detect open events
+  const [wasOpen, setWasOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && !wasOpen) {
+      // Form was just opened (either internally or externally)
+      // Reset all form values to ensure we don't remember previous expense data
+      setAmountOfSpending(undefined);
+      changeSum("");
+      setExpenseType(undefined);
+      setActiveExpenseTypeKey("");
+      setDate(new Date());
+
+      // Auto-fill active trip config if available
+      if (activeTrip) {
+        if (setCurrentCountry) setCurrentCountry(activeTrip.country_id);
+        if (setSelectedCurrency) setSelectedCurrency(activeTrip.target_currency);
+      }
+    }
+    setWasOpen(isOpen);
+  }, [isOpen, wasOpen, activeTrip, setCurrentCountry, setSelectedCurrency]);
 
   // Reset all form values when closing the form
   const onClose = useCallback(() => {
@@ -126,18 +149,21 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     setActiveExpenseTypeKey("");
   }, [externalOnClose, internalOnClose]);
 
-  // Reset all form values when opening the form
+  // Reset all form values when opening the form (Internal trigger)
   const onOpen = useCallback(() => {
-    // Reset all form values to ensure we don't remember previous expense data
     setAmountOfSpending(undefined);
     changeSum("");
     setExpenseType(undefined);
     setActiveExpenseTypeKey("");
     setDate(new Date());
 
-    // Then open the form
+    if (activeTrip) {
+      if (setCurrentCountry) setCurrentCountry(activeTrip.country_id);
+      if (setSelectedCurrency) setSelectedCurrency(activeTrip.target_currency);
+    }
+
     internalOnOpen();
-  }, [internalOnOpen]);
+  }, [internalOnOpen, activeTrip, setCurrentCountry, setSelectedCurrency]);
 
   // Optimized amount change handler with debounce for iOS
   const handleAmountChange = useCallback((value: string) => {
@@ -237,6 +263,9 @@ const BlueButton: React.FC<BlueButtonProps> = ({
       const selectedCurrencyLowerCase = selectedCurrency?.toLowerCase();
       let currentRateInfo;
 
+      console.log("homeCurrency", homeCurrency);
+      console.log("selectedCurrency", selectedCurrency);
+
       currentRateInfo = await fetch(
         `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${isoDate}/v1/currencies/${selectedCurrencyLowerCase}.json`
       );
@@ -281,10 +310,11 @@ const BlueButton: React.FC<BlueButtonProps> = ({
         amount_in_home_currency:
           Number(amountOfSpending) * homeCurrencyValue * 100,
         home_currency: homeCountry.currency,
-        selected_currency: selectedCurrency,
+        selected_currency: String(selectedCurrency),
         country_id: Number(currentCountry),
         expense_types: expenseType,
         date: date,
+        trip_id: tripId || activeTrip?.id || undefined,
       },
       {
         onSuccess: () => {
@@ -317,41 +347,52 @@ const BlueButton: React.FC<BlueButtonProps> = ({
           <PlusIcon />
         </Pressable>
       )}
-      <Actionsheet isOpen={isOpen} onClose={onClose}>
-        <Actionsheet.Content maxHeight={"100%"} marginTop={marginTop}>
+      <Modal visible={isOpen} animationType="slide" transparent={false} onRequestClose={onClose}>
+        <SafeAreaView style={styles.modalSafeArea}>
+          {/* Header: drag handle centered, close button right-aligned */}
+          <View style={styles.modalHeader}>
+            <View style={{ width: 32 }} />
+            <View style={styles.dragHandle} />
+            <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
+              <Ionicons name="close" size={16} color="#666" />
+            </Pressable>
+          </View>
+
           <KeyboardAvoidingView
-            style={{ width: "100%", height: "100%" }}
+            style={styles.keyboardAvoidingView}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
           >
             <ScrollView
-              style={{ width: "100%" }}
+              style={styles.scrollView}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 80 }}
+              contentContainerStyle={styles.scrollContent}
             >
-              <ExpenseForm
-                sum={sum}
-                handleAmountChange={handleAmountChange}
-                handleAmountOfSpendingChange={handleAmountOfSpendingChange}
-                setDate={setDate}
-                setExpenseType={setExpenseType}
-                activeExpenseTypeKey={activeExpenseTypeKey}
-                setActiveExpenseTypeKey={setActiveExpenseTypeKey}
-              />
+              <View style={{ paddingHorizontal: 16, paddingTop: 20, flex: 1 }}>
+                <ExpenseForm
+                  sum={sum}
+                  handleAmountChange={handleAmountChange}
+                  handleAmountOfSpendingChange={handleAmountOfSpendingChange}
+                  setDate={setDate}
+                  setExpenseType={setExpenseType}
+                  activeExpenseTypeKey={activeExpenseTypeKey}
+                  setActiveExpenseTypeKey={setActiveExpenseTypeKey}
+                />
+              </View>
             </ScrollView>
+
             {!keyboardVisible && (
-              <Box marginY={5}>
+              <View style={styles.saveButtonContainer}>
                 <BigBlueButton
                   onPress={saveTransaction}
                   isActive={isActive}
                   text="SAVE"
                 />
-              </Box>
+              </View>
             )}
           </KeyboardAvoidingView>
-        </Actionsheet.Content>
-      </Actionsheet>
+        </SafeAreaView>
+      </Modal>
     </>
   );
 };
@@ -366,6 +407,54 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 40,
     alignSelf: "center",
+  },
+  modalSafeArea: {
+    flex: 1,
+    backgroundColor: "#F7F8FA",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 12,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#F7F8FA",
+  },
+  dragHandle: {
+    width: 36,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#D0D0D0",
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#E8E8ED",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+    width: "100%",
+  },
+  scrollView: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: "#F7F8FA",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  saveButtonContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 20,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
   },
 });
 

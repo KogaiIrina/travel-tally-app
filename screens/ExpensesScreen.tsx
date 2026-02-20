@@ -19,7 +19,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useDeleteExpense } from "../db/hooks/useExpenses";
 import { formatNumber } from "../utils/formatNumber";
 import DataSettingsButton from "./components/expenses/DataSettingsButton";
-import { LinearGradient } from "expo-linear-gradient";
 import BlueButton from "./components/BlueButton";
 import { expensesList, globalMergedExpensesList } from "../utils/expensesList";
 import { currencyList } from "../utils/currencyList";
@@ -27,11 +26,17 @@ import AppliedFilterIndicator from "../organisms/AppliedFilterIndicator";
 import { useCountryById } from "../db/hooks/useCountries";
 import StatisticButton from "./components/StatisticButton";
 import { getCurrentMonth } from "../utils/getCurrentMonth";
-import BottomActionBar from "./components/BottomActionBar";
 import { useDisclose } from "native-base";
 import EmptyExpensesState from "./components/expenses/EmptyExpensesState";
 
-export default function ExpensesScreen() {
+import { Ionicons } from "@expo/vector-icons";
+
+interface Props {
+  tripId?: number;
+  onBack?: () => void;
+}
+
+export default function ExpensesScreen({ tripId, onBack }: Props) {
   const [expenseFilter, setExpenseFilter] = useState<UseExpensesFilter>({});
   const { data: homeCountry } = useHomeCountry();
   const { mutate: deleteExpense } = useDeleteExpense();
@@ -42,7 +47,9 @@ export default function ExpensesScreen() {
   const isFilterEmpty = Object.keys(expenseFilter).length === 0;
   const currentMonth = getCurrentMonth();
   const { data: expenses } = useExpenses(
-    isFilterEmpty ? { monthYear: currentMonth } : expenseFilter
+    isFilterEmpty
+      ? (tripId ? { tripId } : { monthYear: currentMonth })
+      : { ...expenseFilter, tripId }
   );
 
   const handleClearFilter = () => {
@@ -81,36 +88,35 @@ export default function ExpensesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <LinearGradient
-          start={{ x: 0.17, y: 0.17 }}
-          end={{ x: 1.0, y: 1.0 }}
-          colors={["#575759", "transparent"]}
-          style={styles.linearGradient}
-        >
-          <View style={styles.items}>
-            <View style={styles.itemBox}>
-              <DataSettingsButton />
-              <ExpensesFilterButton
-                onSave={setExpenseFilter}
-                expensesFilter={expenseFilter}
-              />
-            </View>
-            {Object.values(expenseFilter).filter(Boolean).length > 0 && (
-              <AppliedFilterIndicator
-                expenseFilter={expenseFilter}
-                clearFilter={handleClearFilter}
-                countryFlag={countryById?.flag}
-              />
-            )}
+        <View style={styles.headerTop}>
+          {onBack && (
+            <Pressable onPress={onBack} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={28} color="#1A1A1A" />
+            </Pressable>
+          )}
+          <View style={[styles.itemBox, onBack && { flex: 1 }]}>
+            <DataSettingsButton />
+            <ExpensesFilterButton
+              onSave={setExpenseFilter}
+              expensesFilter={expenseFilter}
+            />
           </View>
-          <ExpensesSumPlate
-            currency={stringToCurrency({
-              value: homeCountry?.currency,
-              fallback: "USD",
-            })}
-            filter={expenseFilter}
-          />
-        </LinearGradient>
+          {Object.values(expenseFilter).filter(Boolean).length > 0 && (
+            <AppliedFilterIndicator
+              expenseFilter={expenseFilter}
+              clearFilter={handleClearFilter}
+              countryFlag={countryById?.flag}
+            />
+          )}
+        </View>
+        <ExpensesSumPlate
+          currency={stringToCurrency({
+            value: homeCountry?.currency,
+            fallback: "USD",
+          })}
+          filter={expenseFilter}
+          tripId={tripId}
+        />
       </View>
 
       {expenses && expenses.length === 0 ? (
@@ -150,22 +156,22 @@ export default function ExpensesScreen() {
           contentContainerStyle={styles.sectionListContent}
         />
       )}
-      
-      {/* Regular BlueButton with its UI hidden */}
-      <BlueButton 
-        hideUI={true} 
-        isOpen={isAddOpen} 
-        onClose={onAddClose} 
+
+      {/* Regular BlueButton with its UI hidden (handles the Modal logic) */}
+      <BlueButton
+        hideUI={true}
+        isOpen={isAddOpen}
+        onClose={onAddClose}
+        tripId={tripId}
       />
-      
-      {/* Bottom action bar with add and stats buttons */}
-      <BottomActionBar 
-        onAddPress={onAddOpen}
-        onStatsPress={onStatsOpen}
-      />
-      
+
+      {/* Floating Action Button (FAB) for adding an expense */}
+      <Pressable style={styles.fab} onPress={onAddOpen}>
+        <Ionicons name="add" size={32} color="#FFFFFF" />
+      </Pressable>
+
       {/* Statistics modal */}
-      <StatisticButton isOpen={isStatsOpen} onClose={onStatsClose} />
+      <StatisticButton isOpen={isStatsOpen} onClose={onStatsClose} tripId={tripId} />
     </View>
   );
 }
@@ -175,15 +181,15 @@ function stringToExpenseTypeSafe(str: string): keyof typeof expensesList {
   if (str in globalMergedExpensesList) {
     return str as keyof typeof expensesList;
   }
-  
+
   // Then check in the default expenses list
   if (str in expensesList) {
     return str as keyof typeof expensesList;
   }
-  
+
   // Log a warning for debugging purposes
   console.warn(`Warning: Error: unexpected expense type: ${str}`);
-  
+
   // Still return "other" as fallback
   return "other";
 }
@@ -222,6 +228,7 @@ const styles = StyleSheet.create({
   container: {
     height: "100%",
     width: "100%",
+    backgroundColor: "#F7F8FA",
   },
   dateHeader: {
     fontSize: 18,
@@ -234,22 +241,39 @@ const styles = StyleSheet.create({
   },
   items: {
     flexDirection: "column",
-    height: 100,
-    width: "98%",
-    paddingTop: 25,
+    width: "100%",
     justifyContent: "space-between",
   },
   itemBox: {
-    width: "100%",
     flexDirection: "row",
     justifyContent: "flex-end",
+    alignItems: "center",
   },
   header: {
-    backgroundColor: "#212224",
+    backgroundColor: "#FFFFFF",
+    paddingTop: 60,
+    paddingBottom: 20,
+    // borderBottomLeftRadius: 20,
+    // borderBottomRightRadius: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 3,
+    zIndex: 10,
+  },
+  headerTop: {
     flexDirection: "row",
+    paddingHorizontal: 15,
     alignItems: "center",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    justifyContent: "space-between",
+    marginBottom: 5,
+  },
+  backButton: {
+    marginRight: 15,
+    paddingVertical: 10,
   },
   headerText: {
     color: "#FFFFFF",
@@ -259,20 +283,30 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     paddingLeft: 10,
   },
-  linearGradient: {
-    flex: 1,
-    width: "100%",
-    paddingLeft: 15,
-    paddingRight: 15,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
   sectionListContent: {
-    paddingBottom: 80,
+    paddingBottom: 100, // Enough padding to scroll past the FAB
   },
   emptyStateContainer: {
     flex: 1,
     position: 'relative',
+    justifyContent: "center",
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#4169E1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#4169E1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 100,
   },
 });
 
