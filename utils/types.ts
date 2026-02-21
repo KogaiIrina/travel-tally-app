@@ -22,6 +22,7 @@ export interface ExpensesType {
   selected_currency: string;
   country_id: number;
   expense_types: string;
+  comment?: string;
   date: Date;
   trip_id?: number;
 }

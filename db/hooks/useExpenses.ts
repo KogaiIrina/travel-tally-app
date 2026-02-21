@@ -187,8 +187,8 @@ export function useAddExpense() {
     mutationFn: (expense: Omit<ExpensesType, "id">) =>
       dbWrite(
         `INSERT INTO expenses 
-         (amount, amount_in_home_currency, home_currency, selected_currency, country_id, expense_types, date, trip_id) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+         (amount, amount_in_home_currency, home_currency, selected_currency, country_id, expense_types, comment, date, trip_id) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           expense.amount,
           expense.amount_in_home_currency,
@@ -196,6 +196,7 @@ export function useAddExpense() {
           expense.selected_currency,
           expense.country_id,
           expense.expense_types,
+          expense.comment || null,
           Math.floor(+expense.date / 1000),
           expense.trip_id || null
         ]

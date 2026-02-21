@@ -8,6 +8,7 @@ interface ExpensePlateProps {
   amountInHomeCurrency: string;
   homeCurrency: string;
   expenseType: keyof typeof expensesList;
+  comment?: string;
   date: string;
   currentCountryFlag: string;
   currentCountryCurrency: string;
@@ -20,6 +21,7 @@ export default function ExpensePlate({
   currentCountryFlag,
   currentCountryCurrency,
   expenseType,
+  comment,
   date,
 }: ExpensePlateProps) {
   // Get expense details from the global merged list first, fallback to default list
@@ -43,6 +45,11 @@ export default function ExpensePlate({
         <Text style={styles.localAmountText} numberOfLines={1}>
           {amount} {currentCountryCurrency} {currentCountryFlag}
         </Text>
+        {comment && (
+          <Text style={styles.commentText} numberOfLines={2}>
+            {comment}
+          </Text>
+        )}
         <Text style={styles.dateText}>{date}</Text>
       </View>
       <View style={styles.homeCurrencyContainer}>
@@ -85,7 +92,13 @@ const styles = StyleSheet.create({
   localAmountText: {
     fontSize: 16,
     color: "#1A1A1A",
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  commentText: {
+    fontSize: 14,
+    color: "#4A4A4A",
+    marginBottom: 4,
+    fontStyle: "italic",
   },
   dateText: {
     fontSize: 13,

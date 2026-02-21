@@ -13,6 +13,7 @@ import {
   Modal,
   SafeAreaView,
   Text,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useDisclose } from "native-base";
@@ -35,18 +36,22 @@ interface BlueButtonProps {
 // Memoized expense form to prevent unnecessary re-renders
 const ExpenseForm = memo(({
   sum,
+  comment,
   handleAmountChange,
   handleAmountOfSpendingChange,
   setDate,
   setExpenseType,
+  setComment,
   activeExpenseTypeKey,
   setActiveExpenseTypeKey
 }: {
   sum: string;
+  comment: string;
   handleAmountChange: (value: string) => void;
   handleAmountOfSpendingChange: (value: number) => void;
   setDate: (date: Date) => void;
   setExpenseType: (type: string) => void;
+  setComment: (comment: string) => void;
   activeExpenseTypeKey?: string;
   setActiveExpenseTypeKey: (key: string) => void;
 }) => {
@@ -66,6 +71,26 @@ const ExpenseForm = memo(({
     <>
       {InputComponent}
       <View style={{ flex: 1, paddingTop: 8 }}>
+        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8 }}>OPTIONAL COMMENT</Text>
+            <Text style={{ fontSize: 12, color: '#999' }}>{comment.length}/45</Text>
+          </View>
+          <TextInput
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 12,
+              padding: 12,
+              fontSize: 16,
+              color: '#1A1A1A',
+            }}
+            placeholder="Add a comment..."
+            placeholderTextColor="#999"
+            value={comment}
+            onChangeText={setComment}
+            maxLength={45}
+          />
+        </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8, paddingHorizontal: 20, marginBottom: 12 }}>CATEGORY</Text>
           <ExpensesContainer
@@ -83,6 +108,7 @@ const ExpenseForm = memo(({
   // We need to check all props that affect the rendering
   return (
     prevProps.sum === nextProps.sum &&
+    prevProps.comment === nextProps.comment &&
     prevProps.activeExpenseTypeKey === nextProps.activeExpenseTypeKey &&
     // If sum is empty, we're in a reset state, so always re-render
     prevProps.sum !== ""
@@ -98,6 +124,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const [amountOfSpending, setAmountOfSpending] = useState<number>();
   const [date, setDate] = useState(new Date());
   const [sum, changeSum] = useState("");
+  const [comment, setComment] = useState("");
   const [expenseType, setExpenseType] = useState<string>();
   const { data: homeCountry } = useHomeCountry();
   const [currentCountry, setCurrentCountry] = useSetting<number>("selectedCountry");
@@ -124,6 +151,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
       // Reset all form values to ensure we don't remember previous expense data
       setAmountOfSpending(undefined);
       changeSum("");
+      setComment("");
       setExpenseType(undefined);
       setActiveExpenseTypeKey("");
       setDate(new Date());
@@ -153,6 +181,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const onOpen = useCallback(() => {
     setAmountOfSpending(undefined);
     changeSum("");
+    setComment("");
     setExpenseType(undefined);
     setActiveExpenseTypeKey("");
     setDate(new Date());
@@ -313,6 +342,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
         selected_currency: String(selectedCurrency),
         country_id: Number(currentCountry),
         expense_types: expenseType,
+        comment: comment.trim() !== "" ? comment.trim() : undefined,
         date: date,
         trip_id: tripId || activeTrip?.id || undefined,
       },
@@ -321,6 +351,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
           // Reset all form values after successful save
           setAmountOfSpending(undefined);
           changeSum("");
+          setComment("");
           setExpenseType("");
           setActiveExpenseTypeKey("");
           setDate(new Date());
@@ -371,10 +402,12 @@ const BlueButton: React.FC<BlueButtonProps> = ({
               <View style={{ paddingHorizontal: 16, paddingTop: 20, flex: 1 }}>
                 <ExpenseForm
                   sum={sum}
+                  comment={comment}
                   handleAmountChange={handleAmountChange}
                   handleAmountOfSpendingChange={handleAmountOfSpendingChange}
                   setDate={setDate}
                   setExpenseType={setExpenseType}
+                  setComment={setComment}
                   activeExpenseTypeKey={activeExpenseTypeKey}
                   setActiveExpenseTypeKey={setActiveExpenseTypeKey}
                 />

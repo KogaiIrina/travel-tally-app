@@ -23,10 +23,9 @@ export default function MainScreen() {
   const [activeTab, setActiveTab] = React.useState<TabType>("expenses");
   const [selectedTripId, setSelectedTripId] = React.useState<number | null>(null);
 
-  // When a trip is selected from TripsScreen, switch to expenses tab and set the trip
+  // When a trip is selected from TripsScreen, simply set the trip to view it fullscreen
   const handleSelectTrip = (id: number) => {
     setSelectedTripId(id);
-    setActiveTab("expenses");
   };
 
   const _onDone = () => {
@@ -38,19 +37,25 @@ export default function MainScreen() {
       <QueryClientProvider client={queryClient}>
         <NativeBaseProvider>
           <View style={{ flex: 1, backgroundColor: "#F7F8FA" }}>
-            <View style={{ flex: 1 }}>
-              {activeTab === "expenses" ? (
-                <ExpensesScreen
-                  tripId={selectedTripId ?? undefined}
-                  onBack={selectedTripId ? () => setSelectedTripId(null) : undefined}
-                />
-              ) : activeTab === "statistics" ? (
-                <StatisticScreen />
-              ) : (
-                <TripsScreen onSelectTrip={handleSelectTrip} />
-              )}
-            </View>
-            <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+            {selectedTripId ? (
+              <ExpensesScreen
+                tripId={selectedTripId}
+                onBack={() => setSelectedTripId(null)}
+              />
+            ) : (
+              <>
+                <View style={{ flex: 1 }}>
+                  {activeTab === "expenses" ? (
+                    <ExpensesScreen />
+                  ) : activeTab === "statistics" ? (
+                    <StatisticScreen />
+                  ) : (
+                    <TripsScreen onSelectTrip={handleSelectTrip} />
+                  )}
+                </View>
+                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+              </>
+            )}
           </View>
         </NativeBaseProvider>
       </QueryClientProvider>

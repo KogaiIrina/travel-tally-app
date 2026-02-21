@@ -158,6 +158,7 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
                   currentCountryCurrency={expense.selected_currency}
                   homeCurrency={expense.home_currency}
                   expenseType={stringToExpenseTypeSafe(expense.expense_types)}
+                  comment={expense.comment}
                   date={new Date(+expense.date * 1000).toDateString()}
                 />
               </Swipeable>

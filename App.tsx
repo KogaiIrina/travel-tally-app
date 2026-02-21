@@ -96,6 +96,7 @@ function Entrypoint() {
             "selected_currency TEXT," +
             "country_id INTEGER REFERENCES countries(id)," +
             "expense_types TEXT," +
+            "comment TEXT DEFAULT NULL," +
             "date DATETIME" +
             ")"
           );
@@ -135,6 +136,11 @@ function Entrypoint() {
           // Check if trip_id exists in expenses table
           const expensesInfo = await db.getAllAsync<{ name: string }>("PRAGMA table_info(expenses)");
           const hasTripId = expensesInfo.some(col => col.name === "trip_id");
+          const hasComment = expensesInfo.some(col => col.name === "comment");
+
+          if (!hasComment && expensesInfo.length > 0) {
+            await tx.executeSql("ALTER TABLE expenses ADD COLUMN comment TEXT DEFAULT NULL");
+          }
 
           if (!hasTripId && expensesInfo.length > 0) {
             // Alter expenses table to add trip_id
