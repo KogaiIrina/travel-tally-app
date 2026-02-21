@@ -1,14 +1,13 @@
 import React from "react";
 import { NativeBaseProvider } from "native-base";
-import { StyleSheet, View, Image } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ExpensesScreen from "./ExpensesScreen";
 import TripsScreen from "./TripsScreen";
 import StatisticScreen from "./StatisticScreen";
 import TabBar, { TabType } from "./components/navigation/TabBar";
 import { loadSettings, useSetting } from "../utils/settings";
-import AppIntroSlider from "react-native-app-intro-slider";
-import { Slide, slides } from "../utils/slides";
+import OnboardingFlow from "./components/onboarding/OnboardingFlow";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,19 +27,6 @@ export default function MainScreen() {
   const handleSelectTrip = (id: number) => {
     setSelectedTripId(id);
     setActiveTab("expenses");
-  };
-
-  const _renderItem = ({ item }: { item: Slide }) => {
-    if ("component" in item) {
-      const CustomComponent = item.component;
-      return <CustomComponent />;
-    } else {
-      return (
-        <View style={styles.slide}>
-          <Image source={item.image} style={styles.image} />
-        </View>
-      );
-    }
   };
 
   const _onDone = () => {
@@ -73,27 +59,9 @@ export default function MainScreen() {
     return (
       <QueryClientProvider client={queryClient}>
         <NativeBaseProvider>
-          <AppIntroSlider
-            renderItem={_renderItem}
-            data={slides}
-            onDone={_onDone}
-          />
+          <OnboardingFlow onComplete={_onDone} />
         </NativeBaseProvider>
       </QueryClientProvider>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  slide: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f7d253",
-  },
-  image: {
-    width: 350,
-    height: 600,
-    borderRadius: 10,
-  },
-});

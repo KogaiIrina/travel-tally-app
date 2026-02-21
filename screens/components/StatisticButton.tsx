@@ -178,6 +178,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
             endDate={dateEnd}
             onStartDatePress={() => handleDatePickerPress("startDate")}
             onEndDatePress={() => handleDatePickerPress("endDate")}
+            onEditPress={() => true}
           />
 
           <ScrollView

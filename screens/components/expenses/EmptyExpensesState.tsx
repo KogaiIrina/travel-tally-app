@@ -28,7 +28,7 @@ const EmptyExpensesState: React.FC<Props> = ({ hasTrips, onCreateTrip }) => {
         </Text>
         <Text style={[styles.subtitle, { color: subtextColor }]}>
           {hasTrips
-            ? "Start tracking your spending for this month or trip!"
+            ? "Start tracking your spending for this month or trip by tapping the + button!"
             : "Let's create your first trip to start tracking expenses."}
         </Text>
 
@@ -38,21 +38,6 @@ const EmptyExpensesState: React.FC<Props> = ({ hasTrips, onCreateTrip }) => {
           </Pressable>
         )}
       </View>
-
-      {/* Arrow pointing to add button (only if they have trips) */}
-      {hasTrips && (
-        <View style={styles.arrowContainer}>
-          <Text style={[styles.arrowText, { color: subtextColor }]}>
-            Tap the + button below
-          </Text>
-          <Ionicons
-            name="arrow-down"
-            size={30}
-            color={arrowColor}
-            style={styles.arrowIcon}
-          />
-        </View>
-      )}
     </View>
   );
 };
