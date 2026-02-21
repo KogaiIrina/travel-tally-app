@@ -254,13 +254,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#F7F8FA",
   },
   dateHeader: {
-    fontSize: 18,
-    fontWeight: "bold",
-    paddingLeft: 10,
-    paddingTop: 10,
-    color: "#A7ADB2",
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 8,
+    color: "#8A8A8E", // subtle iOS-style section header gray
+    backgroundColor: "#F7F8FA", // match screen bg for sticky scroll
     width: "100%",
-    backgroundColor: "#FFFFFF",
   },
   items: {
     flexDirection: "column",
@@ -345,7 +348,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
-    zIndex: 100,
   },
 });
 

@@ -19,6 +19,19 @@ export default function useCountries() {
   });
 }
 
+export function useVisitedCountries() {
+  return useQuery({
+    queryKey: ["useVisitedCountries"],
+    queryFn: async () => {
+      return await dbRead<CountryType>(
+        `SELECT * FROM countries 
+         WHERE id IN (SELECT country_id FROM trips) 
+            OR id IN (SELECT country_id FROM expenses)`
+      );
+    },
+  });
+}
+
 export function useCountriesMutation() {
   const queryClient = useQueryClient();
 

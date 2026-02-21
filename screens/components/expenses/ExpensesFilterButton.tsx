@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Pressable, Text, View, Dimensions } from "react-native";
 import { Actionsheet, Box, Button, IconButton, useDisclose } from "native-base";
-import useCountries from "../../../db/hooks/useCountries";
+import { useVisitedCountries } from "../../../db/hooks/useCountries";
+import { Ionicons } from "@expo/vector-icons";
 import FilterIcon from "./icons/filter";
 import CalendarIcon from "./icons/calendar";
 import ExpensesCategoryIcon from "./icons/expenses-type";
@@ -24,7 +25,7 @@ export default function ExpensesFilterButton({
   onSave,
   expensesFilter,
 }: FilterButtonProps) {
-  const { data: countries } = useCountries();
+  const { data: countries } = useVisitedCountries();
   const { data: months } = useMonths();
   const { data: customCategories } = useCustomCategories();
 
@@ -136,7 +137,7 @@ export default function ExpensesFilterButton({
                 selectedValue={selectedCountryId}
                 placeholder="Choose Country"
                 showIcons={false}
-                leftIcon={<Text>🧭</Text>}
+                leftIcon={<Ionicons name="location-outline" size={24} color="#4169E1" />}
                 width={SCREEN_WIDTH * 0.85}
                 onValueChange={(value) =>
                   setSelectedCountryId(value === "no-country" ? undefined : Number(value))
@@ -149,7 +150,7 @@ export default function ExpensesFilterButton({
                 selectedValue={selectedCategory}
                 placeholder="Choose Category"
                 showIcons={false}
-                leftIcon={<Text>🛍</Text>}
+                leftIcon={<ExpensesCategoryIcon />}
                 width={SCREEN_WIDTH * 0.85}
                 onValueChange={(value) =>
                   setSelectedCategory(value === "no-category" ? "" : value)
@@ -162,7 +163,7 @@ export default function ExpensesFilterButton({
                 selectedValue={selectedMonth}
                 placeholder="Choose Month"
                 showIcons={false}
-                leftIcon={<Text>📅</Text>}
+                leftIcon={<CalendarIcon />}
                 width={SCREEN_WIDTH * 0.85}
                 onValueChange={(value) =>
                   setSelectedMonth(value === "no-month" ? "" : value)
@@ -182,22 +183,24 @@ export default function ExpensesFilterButton({
 
 const styles = StyleSheet.create({
   buttonStyle: {
-    backgroundColor: "#565BD7",
+    backgroundColor: "#4169E1",
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
   buttonContainer: {
     flexDirection: "row",
-    marginTop: -160,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    gap: 12,
   },
   container: {
     alignItems: "center",
     height: "100%",
-    paddingTop: 20,
   },
   selectorGroup: {
     flexDirection: "row",
@@ -205,11 +208,13 @@ const styles = StyleSheet.create({
     height: 60,
     width: "100%",
     borderWidth: 1,
-    borderRadius: 10,
-    borderColor: "#C3C5F3",
+    borderRadius: 12,
+    borderColor: "#E8EEFF",
   },
   selectorsBox: {
-    height: 400,
+    height: "auto",
+    paddingBottom: 20,
+    marginTop: 10,
   },
   button: {
     backgroundColor: "#FFFFFF",
@@ -230,11 +235,11 @@ const styles = StyleSheet.create({
   selectorButton: {
     height: "100%",
     width: "16%",
-    backgroundColor: "#F3F6FF",
-    borderColor: "#C3C5F3",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E8EEFF",
     borderWidth: 0.3,
-    borderTopLeftRadius: 7,
-    borderBottomLeftRadius: 7,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
   },
@@ -244,15 +249,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "83%",
     height: "100%",
-    borderRadius: 10,
+    borderRadius: 12,
     paddingLeft: 5,
-    borderColor: "#C3C5F3",
+    borderColor: "#E8EEFF",
   },
   text: {
-    fontWeight: "600",
-    fontSize: 18,
-    lineHeight: 21,
-    color: "#494EBF",
+    fontWeight: "700",
+    fontSize: 20,
+    lineHeight: 24,
+    color: "#1A1A1A",
   },
   icon: {
     color: "#FFFFFF",
@@ -260,6 +265,7 @@ const styles = StyleSheet.create({
   },
   header: {
     justifyContent: "center",
-    paddingTop: 20,
+    paddingTop: 15,
+    paddingBottom: 5,
   },
 });
