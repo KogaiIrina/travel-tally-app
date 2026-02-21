@@ -7,7 +7,6 @@ import {
   View,
   Platform,
   Keyboard,
-  ScrollView,
   KeyboardAvoidingView,
   InteractionManager,
   Modal,
@@ -393,26 +392,19 @@ const BlueButton: React.FC<BlueButtonProps> = ({
             style={styles.keyboardAvoidingView}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
-            <ScrollView
-              style={styles.scrollView}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              <View style={{ paddingHorizontal: 16, paddingTop: 20, flex: 1 }}>
-                <ExpenseForm
-                  sum={sum}
-                  comment={comment}
-                  handleAmountChange={handleAmountChange}
-                  handleAmountOfSpendingChange={handleAmountOfSpendingChange}
-                  setDate={setDate}
-                  setExpenseType={setExpenseType}
-                  setComment={setComment}
-                  activeExpenseTypeKey={activeExpenseTypeKey}
-                  setActiveExpenseTypeKey={setActiveExpenseTypeKey}
-                />
-              </View>
-            </ScrollView>
+            <View style={{ paddingHorizontal: 16, paddingTop: 20, flex: 1 }}>
+              <ExpenseForm
+                sum={sum}
+                comment={comment}
+                handleAmountChange={handleAmountChange}
+                handleAmountOfSpendingChange={handleAmountOfSpendingChange}
+                setDate={setDate}
+                setExpenseType={setExpenseType}
+                setComment={setComment}
+                activeExpenseTypeKey={activeExpenseTypeKey}
+                setActiveExpenseTypeKey={setActiveExpenseTypeKey}
+              />
+            </View>
 
             {!keyboardVisible && (
               <View style={styles.saveButtonContainer}>
@@ -471,15 +463,6 @@ const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
     width: "100%",
-  },
-  scrollView: {
-    flex: 1,
-    width: "100%",
-    backgroundColor: "#F7F8FA",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 20,
   },
   saveButtonContainer: {
     paddingHorizontal: 16,

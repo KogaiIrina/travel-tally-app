@@ -135,8 +135,10 @@ export default function ExpensesContainer({
     <>
       <ScrollView
         style={styles.container}
+        contentContainerStyle={{ paddingBottom: 20 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
       >
         {rows.map((row, index) => (
           <View key={`row-${index}`} style={styles.expensesRow}>
