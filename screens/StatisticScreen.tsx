@@ -80,14 +80,10 @@ export default function StatisticScreen() {
   const textColor = useColorModeValue("#333333", "#E5E5E5");
   const accentColor = "#FFB547";
 
-  // Handle date picker open and check subscription
+  // Handle date picker open
   const handleDatePickerPress = (pickerType: "startDate" | "endDate") => {
-    if (hasActiveSubscription) {
-      setTempDate(pickerType === "startDate" ? dateStart : dateEnd);
-      setShowPicker(pickerType);
-    } else {
-      setIsProFeatureModalVisible(true);
-    }
+    setTempDate(pickerType === "startDate" ? dateStart : dateEnd);
+    setShowPicker(pickerType);
   };
 
   // Close the pro feature modal
@@ -161,6 +157,13 @@ export default function StatisticScreen() {
         endDate={dateEnd}
         onStartDatePress={() => handleDatePickerPress("startDate")}
         onEndDatePress={() => handleDatePickerPress("endDate")}
+        onEditPress={() => {
+          if (!hasActiveSubscription) {
+            setIsProFeatureModalVisible(true);
+            return false;
+          }
+          return true;
+        }}
       />
 
       <ScrollView
