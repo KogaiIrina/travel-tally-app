@@ -4,6 +4,8 @@ import { StyleSheet, View, Image } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ExpensesScreen from "./ExpensesScreen";
 import TripsScreen from "./TripsScreen";
+import StatisticScreen from "./StatisticScreen";
+import TabBar, { TabType } from "./components/navigation/TabBar";
 import { loadSettings, useSetting } from "../utils/settings";
 import AppIntroSlider from "react-native-app-intro-slider";
 import { Slide, slides } from "../utils/slides";
@@ -19,7 +21,14 @@ const queryClient = new QueryClient({
 
 export default function MainScreen() {
   const [showRealApp, setShowRealApp] = useSetting<boolean>("showRealApp");
+  const [activeTab, setActiveTab] = React.useState<TabType>("expenses");
   const [selectedTripId, setSelectedTripId] = React.useState<number | null>(null);
+
+  // When a trip is selected from TripsScreen, switch to expenses tab and set the trip
+  const handleSelectTrip = (id: number) => {
+    setSelectedTripId(id);
+    setActiveTab("expenses");
+  };
 
   const _renderItem = ({ item }: { item: Slide }) => {
     if ("component" in item) {
@@ -42,14 +51,21 @@ export default function MainScreen() {
     return (
       <QueryClientProvider client={queryClient}>
         <NativeBaseProvider>
-          {selectedTripId ? (
-            <ExpensesScreen
-              tripId={selectedTripId}
-              onBack={() => setSelectedTripId(null)}
-            />
-          ) : (
-            <TripsScreen onSelectTrip={(id) => setSelectedTripId(id)} />
-          )}
+          <View style={{ flex: 1, backgroundColor: "#F7F8FA" }}>
+            <View style={{ flex: 1 }}>
+              {activeTab === "expenses" ? (
+                <ExpensesScreen
+                  tripId={selectedTripId ?? undefined}
+                  onBack={selectedTripId ? () => setSelectedTripId(null) : undefined}
+                />
+              ) : activeTab === "statistics" ? (
+                <StatisticScreen />
+              ) : (
+                <TripsScreen onSelectTrip={handleSelectTrip} />
+              )}
+            </View>
+            <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          </View>
         </NativeBaseProvider>
       </QueryClientProvider>
     );

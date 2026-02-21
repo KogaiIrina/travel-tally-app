@@ -1,12 +1,15 @@
 import React from "react";
 import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
-import useTrips, { useDeleteTrip, useSetActiveTrip } from "../db/hooks/useTrips";
+import useTrips, { useDeleteTrip, useSetActiveTrip, useActiveTrip } from "../db/hooks/useTrips";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import CreateTripModal from "./components/trips/CreateTripModal";
 import { useDisclose } from "native-base";
-import StatisticButton from "./components/StatisticButton";
+import BlueButton from "./components/BlueButton";
 import { Ionicons } from "@expo/vector-icons";
+import useHomeCountry from "../db/hooks/useHomeCountry";
+import { formatNumber } from "../utils/formatNumber";
+import { currencyList } from "../utils/currencyList";
 
 interface TripsScreenProps {
   onSelectTrip: (id: number) => void;
@@ -14,10 +17,11 @@ interface TripsScreenProps {
 
 export default function TripsScreen({ onSelectTrip }: TripsScreenProps) {
   const { data: trips } = useTrips();
+  const { data: homeCountry } = useHomeCountry();
   const { mutate: deleteTrip } = useDeleteTrip();
   const { mutate: setActiveTrip } = useSetActiveTrip();
+  const { data: activeTrip } = useActiveTrip();
   const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclose();
-  const { isOpen: isStatsOpen, onOpen: onStatsOpen, onClose: onStatsClose } = useDisclose();
 
   const rightSwipeActions = (id: number) => (
     <Pressable
@@ -42,12 +46,9 @@ export default function TripsScreen({ onSelectTrip }: TripsScreenProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Pressable onPress={onStatsOpen} style={styles.headerActionLeft}>
-            <Ionicons name="pie-chart-outline" size={24} color="#333" />
-          </Pressable>
           <Text style={styles.headerTitle}>My Trips</Text>
-          <Pressable onPress={onCreateOpen} style={styles.headerActionRight}>
-            <Ionicons name="add" size={28} color="#4169E1" />
+          <Pressable onPress={onCreateOpen} style={styles.headerAddButton}>
+            <Text style={styles.headerAddText}>Create Trip</Text>
           </Pressable>
         </View>
       </View>
@@ -67,6 +68,9 @@ export default function TripsScreen({ onSelectTrip }: TripsScreenProps) {
                   <Text style={styles.tripName}>{item.name}</Text>
                   <Text style={styles.tripDetails}>
                     {item.country} {item.flag} • {item.base_currency} ➔ {item.target_currency}
+                  </Text>
+                  <Text style={styles.tripTotalInfo}>
+                    Total Spent: {currencyList[homeCountry?.currency as keyof typeof currencyList] || "$"}{formatNumber(Number(((item.total_spent || 0) / 100).toFixed(2)))}
                   </Text>
                 </View>
                 <Pressable
@@ -94,8 +98,6 @@ export default function TripsScreen({ onSelectTrip }: TripsScreenProps) {
       />
 
       <CreateTripModal isOpen={isCreateOpen} onClose={onCreateClose} />
-      {/* For global stats, pass no tripId. For trip specific, this will be handled in ExpensesScreen */}
-      <StatisticButton isOpen={isStatsOpen} onClose={onStatsClose} />
     </View>
   );
 }
@@ -127,11 +129,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
   },
-  headerActionRight: {
-    width: 40,
-    height: 40,
+  headerAddButton: {
+    backgroundColor: "#E8EEFF",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
     justifyContent: "center",
-    alignItems: "flex-end",
+    alignItems: "center",
+  },
+  headerAddText: {
+    color: "#4169E1",
+    fontSize: 14,
+    fontWeight: "700",
   },
   headerTitle: { color: "#1A1A1A", fontSize: 24, fontWeight: "700" },
   listContent: { padding: 16, paddingBottom: 40 },
@@ -151,7 +160,8 @@ const styles = StyleSheet.create({
   },
   tripInfo: { flex: 1 },
   tripName: { fontSize: 18, fontWeight: "600", marginBottom: 4, paddingRight: 8 },
-  tripDetails: { fontSize: 14, color: "#666" },
+  tripDetails: { fontSize: 14, color: "#666", marginBottom: 6 },
+  tripTotalInfo: { fontSize: 14, color: "#1A1A1A", fontWeight: "600" },
   activeButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -179,6 +189,7 @@ const styles = StyleSheet.create({
   emptyCreateButtonText: {
     color: "#FFF",
     fontSize: 18,
-    fontWeight: "bold",
+    shadowRadius: 8,
+    elevation: 5,
   },
 });

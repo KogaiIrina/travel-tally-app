@@ -11,7 +11,8 @@ let cachedSubscriptionStatus = false;
  */
 export const useSubscriptionStatus = () => {
   if (Platform.OS === "ios") {
-    const { user } = useRevenueCat();
+    const purchaseContext = useRevenueCat();
+    const user = purchaseContext?.user || { cookies: 0, items: [], pro: false };
     const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(user.pro || cachedSubscriptionStatus);
     const [isLoading, setIsLoading] = useState<boolean>(!cachedSubscriptionStatus);
     const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
@@ -31,14 +32,14 @@ export const useSubscriptionStatus = () => {
             setIsLoading(false);
             return;
           }
-          
+
           // If we have a cached status of true, use it immediately
           if (cachedSubscriptionStatus) {
             setHasActiveSubscription(true);
             setIsLoading(false);
             return;
           }
-          
+
           // Then double-check with the latest data from RevenueCat
           const { hasSubscription } = await checkSubscriptionStatus();
           setHasActiveSubscription(hasSubscription);
@@ -63,7 +64,7 @@ export const useSubscriptionStatus = () => {
     return {
       hasActiveSubscription: true,
       isLoading: false,
-      forceRefresh: () => {} // No-op function for Android
+      forceRefresh: () => { } // No-op function for Android
     };
   }
 };

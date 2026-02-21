@@ -102,10 +102,10 @@ export default function ExpensesFilterButton({
 
   const expensesList = useMemo(() => {
     // Get the merged array that includes custom categories
-    const { mergedExpensesArray } = customCategories 
-      ? mergeCategories(customCategories) 
+    const { mergedExpensesArray } = customCategories
+      ? mergeCategories(customCategories)
       : { mergedExpensesArray: expensesArray };
-    
+
     return mergedExpensesArray.map(({ key, text }, index) => ({
       label: `${text}`,
       value: key,
@@ -212,19 +212,15 @@ const styles = StyleSheet.create({
     height: 400,
   },
   button: {
-    backgroundColor: "#1C1D1F",
-    height: 40,
-    width: 40,
-    color: "#FFFFFF",
+    backgroundColor: "#F3F6FF",
+    height: 38,
+    width: 38,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
-    shadowColor: "#EDEAEA",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 2,
-    elevation: 5,
-    marginLeft: 5,
+    borderWidth: 1,
+    borderColor: "#E8EEFF",
+    marginLeft: 8,
   },
   selectorButton: {
     height: "100%",

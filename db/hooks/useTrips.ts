@@ -6,15 +6,28 @@ import { TripType } from "../../utils/types";
 export const USE_TRIPS_QUERY_KEY = "useTrips";
 export const USE_ACTIVE_TRIP_QUERY_KEY = "useActiveTrip";
 
-export type ExpandedTripType = TripType & { country: string; flag: string };
+export type ExpandedTripType = TripType & {
+  country: string;
+  flag: string;
+  total_spent?: number;
+};
 
 export default function useTrips() {
   return useQuery({
     queryKey: [USE_TRIPS_QUERY_KEY],
     queryFn: () => {
-      // return trips with country details
+      // return trips with country details and total spent
       return dbRead<ExpandedTripType>(
-        "SELECT trips.*, countries.country, countries.flag FROM trips LEFT JOIN countries ON trips.country_id = countries.id ORDER BY trips.start_date DESC, trips.id DESC"
+        `SELECT
+          trips.*,
+          countries.country,
+          countries.flag,
+          COALESCE(SUM(expenses.amount_in_home_currency), 0) AS total_spent
+         FROM trips
+         LEFT JOIN countries ON trips.country_id = countries.id
+         LEFT JOIN expenses ON expenses.trip_id = trips.id
+         GROUP BY trips.id
+         ORDER BY trips.start_date DESC, trips.id DESC`
       );
     },
   });

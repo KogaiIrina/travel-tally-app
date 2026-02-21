@@ -11,6 +11,7 @@ import useExpenses, {
   UseExpensesFilter,
 } from "../db/hooks/useExpenses";
 import useHomeCountry from "../db/hooks/useHomeCountry";
+import { useActiveTrip } from "../db/hooks/useTrips";
 import ExpensePlate from "./components/expenses/ExpensePlate";
 import ExpensesSumPlate from "./components/expenses/ExpensesSumPlate";
 import ExpensesFilterButton from "./components/expenses/ExpensesFilterButton";
@@ -24,10 +25,11 @@ import { expensesList, globalMergedExpensesList } from "../utils/expensesList";
 import { currencyList } from "../utils/currencyList";
 import AppliedFilterIndicator from "../organisms/AppliedFilterIndicator";
 import { useCountryById } from "../db/hooks/useCountries";
-import StatisticButton from "./components/StatisticButton";
 import { getCurrentMonth } from "../utils/getCurrentMonth";
 import { useDisclose } from "native-base";
 import EmptyExpensesState from "./components/expenses/EmptyExpensesState";
+import CreateTripModal from "./components/trips/CreateTripModal";
+import useTrips from "../db/hooks/useTrips";
 
 import { Ionicons } from "@expo/vector-icons";
 
@@ -41,8 +43,12 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
   const { data: homeCountry } = useHomeCountry();
   const { mutate: deleteExpense } = useDeleteExpense();
   const { data: countryById } = useCountryById(expenseFilter.paymentCountryId);
-  const { isOpen: isStatsOpen, onOpen: onStatsOpen, onClose: onStatsClose } = useDisclose();
+  const { data: activeTrip } = useActiveTrip();
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclose();
+  const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclose();
+
+  const { data: trips } = useTrips();
+  const hasTrips = trips ? trips.length > 0 : false;
 
   const isFilterEmpty = Object.keys(expenseFilter).length === 0;
   const currentMonth = getCurrentMonth();
@@ -89,25 +95,28 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          {onBack && (
-            <Pressable onPress={onBack} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={28} color="#1A1A1A" />
-            </Pressable>
-          )}
-          <View style={[styles.itemBox, onBack && { flex: 1 }]}>
+          <View style={styles.headerTopLeft}>
+            {onBack && (
+              <Pressable onPress={onBack} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={28} color="#1A1A1A" />
+              </Pressable>
+            )}
+            {!onBack && <Text style={styles.headerTitle}>Expenses</Text>}
+          </View>
+          <View style={styles.itemBox}>
+            {Object.values(expenseFilter).filter(Boolean).length > 0 && (
+              <AppliedFilterIndicator
+                expenseFilter={expenseFilter}
+                clearFilter={handleClearFilter}
+                countryFlag={countryById?.flag}
+              />
+            )}
             <DataSettingsButton />
             <ExpensesFilterButton
               onSave={setExpenseFilter}
               expensesFilter={expenseFilter}
             />
           </View>
-          {Object.values(expenseFilter).filter(Boolean).length > 0 && (
-            <AppliedFilterIndicator
-              expenseFilter={expenseFilter}
-              clearFilter={handleClearFilter}
-              countryFlag={countryById?.flag}
-            />
-          )}
         </View>
         <ExpensesSumPlate
           currency={stringToCurrency({
@@ -121,7 +130,10 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
 
       {expenses && expenses.length === 0 ? (
         <View style={styles.emptyStateContainer}>
-          <EmptyExpensesState />
+          <EmptyExpensesState
+            hasTrips={hasTrips}
+            onCreateTrip={onCreateOpen}
+          />
         </View>
       ) : (
         <SectionList
@@ -157,21 +169,25 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
         />
       )}
 
-      {/* Regular BlueButton with its UI hidden (handles the Modal logic) */}
-      <BlueButton
-        hideUI={true}
-        isOpen={isAddOpen}
-        onClose={onAddClose}
-        tripId={tripId}
-      />
+      {/* Floating Action Button (FAB) for adding an expense - only if this is the active trip */}
+      {activeTrip && (!tripId || activeTrip.id === tripId) && (
+        <>
+          {/* Regular BlueButton with its UI hidden (handles the Modal logic) */}
+          <BlueButton
+            hideUI={true}
+            isOpen={isAddOpen}
+            onClose={onAddClose}
+            tripId={tripId}
+          />
 
-      {/* Floating Action Button (FAB) for adding an expense */}
-      <Pressable style={styles.fab} onPress={onAddOpen}>
-        <Ionicons name="add" size={32} color="#FFFFFF" />
-      </Pressable>
+          <Pressable style={styles.fab} onPress={onAddOpen}>
+            <Ionicons name="add" size={32} color="#FFFFFF" />
+          </Pressable>
+        </>
+      )}
 
-      {/* Statistics modal */}
-      <StatisticButton isOpen={isStatsOpen} onClose={onStatsClose} tripId={tripId} />
+      {/* Create Trip Modal for first-time users */}
+      <CreateTripModal isOpen={isCreateOpen} onClose={onCreateClose} />
     </View>
   );
 }
@@ -248,6 +264,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
+    flex: 1,
+    gap: 8,
+  },
+  headerTopLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerActionLeft: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingRight: 10,
+  },
+  headerTitle: {
+    color: "#1A1A1A",
+    fontSize: 24,
+    fontWeight: "700",
   },
   header: {
     backgroundColor: "#FFFFFF",

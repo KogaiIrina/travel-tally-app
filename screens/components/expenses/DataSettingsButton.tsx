@@ -54,9 +54,9 @@ export default function DataSettingsButton() {
         Alert.alert(
           "Import Data",
           "This will overwrite your current data." +
-            " Your data is stored only on your phone and in the backups, you have made yourself." +
-            " If your backup is broken, your data will become unrecoverable." +
-            "\nDo you want to proceed?",
+          " Your data is stored only on your phone and in the backups, you have made yourself." +
+          " If your backup is broken, your data will become unrecoverable." +
+          "\nDo you want to proceed?",
           [
             { text: "Cancel" },
             {
@@ -146,18 +146,15 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   button: {
-    backgroundColor: "#1C1D1F",
-    height: 40,
-    width: 40,
-    color: "#FFFFFF",
+    backgroundColor: "#F3F6FF",
+    height: 38,
+    width: 38,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
-    shadowColor: "#EDEAEA",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 2,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: "#E8EEFF",
+    marginLeft: 8,
   },
   exportImportButton: {
     height: 50,

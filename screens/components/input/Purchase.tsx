@@ -37,7 +37,8 @@ const Purchase: React.FC<PurchaseProps> = ({
   setIsPromoOpened,
   onPurchaseInitiated,
 }) => {
-  const { packages } = useRevenueCat();
+  const purchaseContext = useRevenueCat();
+  const packages = purchaseContext?.packages || [];
   const [isLoading, setIsLoading] = useState(false);
   const [purchaseStatus, setPurchaseStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('');

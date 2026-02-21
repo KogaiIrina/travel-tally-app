@@ -39,7 +39,8 @@ export function useSubscriptionStatus() {
 
 export const usePurchasePackage = () => {
   const queryClient = useQueryClient();
-  const { purchasePackage } = useRevenueCat();
+  const purchaseContext = useRevenueCat();
+  const purchasePackage = purchaseContext?.purchasePackage;
 
   return useMutation({
     mutationFn: async (pack: PurchasesPackage) => {

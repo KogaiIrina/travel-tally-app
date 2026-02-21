@@ -106,7 +106,7 @@ export default function CreateTripModal({ isOpen, onClose }: Props) {
     >
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={{ flex: 1, backgroundColor: "#F7F8FA" }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           {/* Header */}
@@ -202,7 +202,7 @@ export default function CreateTripModal({ isOpen, onClose }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F7F8FA",
+    backgroundColor: "#FFFFFF",
   },
   header: {
     flexDirection: "row",

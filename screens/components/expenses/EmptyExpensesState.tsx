@@ -1,9 +1,14 @@
 import React from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, Pressable } from 'react-native';
 import { useColorModeValue } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 
-const EmptyExpensesState: React.FC = () => {
+interface Props {
+  hasTrips: boolean;
+  onCreateTrip: () => void;
+}
+
+const EmptyExpensesState: React.FC<Props> = ({ hasTrips, onCreateTrip }) => {
   const textColor = '#1A1A1A';
   const subtextColor = '#666666';
   const arrowColor = '#4169E1';
@@ -19,25 +24,35 @@ const EmptyExpensesState: React.FC = () => {
 
         {/* Text content */}
         <Text style={[styles.title, { color: textColor }]}>
-          No Expenses Yet
+          {hasTrips ? "No Expenses Yet" : "Welcome!"}
         </Text>
         <Text style={[styles.subtitle, { color: subtextColor }]}>
-          Start tracking your spending for this month or trip!
+          {hasTrips
+            ? "Start tracking your spending for this month or trip!"
+            : "Let's create your first trip to start tracking expenses."}
         </Text>
+
+        {!hasTrips && (
+          <Pressable style={styles.createButton} onPress={onCreateTrip}>
+            <Text style={styles.createButtonText}>+ Create Trip</Text>
+          </Pressable>
+        )}
       </View>
 
-      {/* Arrow pointing to add button */}
-      <View style={styles.arrowContainer}>
-        <Text style={[styles.arrowText, { color: subtextColor }]}>
-          Tap the + button below
-        </Text>
-        <Ionicons
-          name="arrow-down"
-          size={30}
-          color={arrowColor}
-          style={styles.arrowIcon}
-        />
-      </View>
+      {/* Arrow pointing to add button (only if they have trips) */}
+      {hasTrips && (
+        <View style={styles.arrowContainer}>
+          <Text style={[styles.arrowText, { color: subtextColor }]}>
+            Tap the + button below
+          </Text>
+          <Ionicons
+            name="arrow-down"
+            size={30}
+            color={arrowColor}
+            style={styles.arrowIcon}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -92,6 +107,23 @@ const styles = StyleSheet.create({
   arrowText: {
     fontSize: 15,
     fontWeight: '500',
+  },
+  createButton: {
+    backgroundColor: '#4169E1',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    shadowColor: '#4169E1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    marginTop: 20,
+  },
+  createButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
