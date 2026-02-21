@@ -24,6 +24,7 @@ import { useAddExpense } from "../../db/hooks/useExpenses";
 import useHomeCountry from "../../db/hooks/useHomeCountry";
 import { useSetting } from "../../utils/settings";
 import { useActiveTrip } from "../../db/hooks/useTrips";
+import useExchangeRate from "../../db/hooks/useExchangeRate";
 
 interface BlueButtonProps {
   hideUI?: boolean;
@@ -134,6 +135,13 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const { data: activeTrip } = useActiveTrip();
 
   const isoDate = date.toISOString().split("T")[0];
+
+  // Prefetch the exchange rate in the background while the user fills the form
+  const { data: exchangeRate, isFetching: isFetchingRate } = useExchangeRate({
+    selectedCurrency: selectedCurrency,
+    homeCurrency: homeCountry?.currency,
+    isoDate: isoDate,
+  });
 
   // Use internal state if external props are not provided
   const { isOpen: internalIsOpen, onOpen: internalOnOpen, onClose: internalOnClose } = useDisclose();
@@ -255,7 +263,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     }
   }, [isOpen]);
 
-  // Strictly check if all required fields are filled
+  // Strictly check if all required fields are filled and the exchange rate is ready
   const isActive = useMemo(() => {
     return Boolean(
       homeCountry &&
@@ -264,12 +272,14 @@ const BlueButton: React.FC<BlueButtonProps> = ({
       amountOfSpending &&
       amountOfSpending > 0 &&
       sum.trim() !== "" &&
-      !isSavingExpense
+      !isSavingExpense &&
+      !isFetchingRate &&
+      exchangeRate !== undefined
     );
-  }, [homeCountry, expenseType, currentCountry, amountOfSpending, sum, isSavingExpense]);
+  }, [homeCountry, expenseType, currentCountry, amountOfSpending, sum, isSavingExpense, isFetchingRate, exchangeRate]);
 
   async function saveTransaction() {
-    if (isSavingExpense) return;
+    if (isSavingExpense || isFetchingRate || exchangeRate === undefined) return;
 
     // Double-check all required fields are filled
     if (!homeCountry)
@@ -283,54 +293,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     if (!selectedCurrency)
       return Alert.alert("you have to choose currency");
 
-    const convertRate = async (
-      selectedCurrency: string | undefined,
-      homeCurrency: string
-    ) => {
-      const homeCurrencyLowerCase = homeCurrency?.toLowerCase();
-      const selectedCurrencyLowerCase = selectedCurrency?.toLowerCase();
-      let currentRateInfo;
-
-      console.log("homeCurrency", homeCurrency);
-      console.log("selectedCurrency", selectedCurrency);
-
-      currentRateInfo = await fetch(
-        `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${isoDate}/v1/currencies/${selectedCurrencyLowerCase}.json`
-      );
-
-      if (!currentRateInfo.ok) {
-        const fallbackUrl = `https://${isoDate}.currency-api.pages.dev/v1/currencies/${selectedCurrencyLowerCase}.json`;
-        currentRateInfo = await fetch(fallbackUrl);
-      }
-
-      // Add fallback to 'latest' if the specific date is not yet available (often happens for today's date)
-      if (!currentRateInfo.ok) {
-        const latestUrl = `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${selectedCurrencyLowerCase}.json`;
-        currentRateInfo = await fetch(latestUrl);
-      }
-
-      if (!currentRateInfo.ok) {
-        const latestFallbackUrl = `https://latest.currency-api.pages.dev/v1/currencies/${selectedCurrencyLowerCase}.json`;
-        currentRateInfo = await fetch(latestFallbackUrl);
-      }
-
-      console.log("saveTransaction", homeCurrencyLowerCase, selectedCurrencyLowerCase)
-
-      if (!currentRateInfo.ok) {
-        throw new Error("All primary and fallback currency fetches failed");
-      }
-
-      const currentRate = await currentRateInfo.json();
-      if (selectedCurrencyLowerCase && homeCurrencyLowerCase) {
-        return currentRate[selectedCurrencyLowerCase][homeCurrencyLowerCase];
-      }
-      return undefined;
-    };
-
-    const homeCurrencyValue = await convertRate(
-      selectedCurrency,
-      homeCountry.currency
-    );
+    const homeCurrencyValue = exchangeRate;
 
     addExpense(
       {
