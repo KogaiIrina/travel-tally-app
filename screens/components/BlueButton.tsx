@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import {
   Alert,
-  Dimensions,
   StyleSheet,
   Pressable,
   View,
@@ -71,7 +70,7 @@ const ExpenseForm = memo(({
     <>
       {InputComponent}
       <View style={{ flex: 1, paddingTop: 8 }}>
-        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+        <View style={{ marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8 }}>OPTIONAL COMMENT</Text>
             <Text style={{ fontSize: 12, color: '#999' }}>{comment.length}/45</Text>
@@ -92,7 +91,7 @@ const ExpenseForm = memo(({
           />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8, paddingHorizontal: 20, marginBottom: 12 }}>CATEGORY</Text>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8, marginBottom: 12 }}>CATEGORY</Text>
           <ExpensesContainer
             setExpenseType={setExpenseType}
             activeExpenseTypeKey={activeExpenseTypeKey}
@@ -329,9 +328,6 @@ const BlueButton: React.FC<BlueButtonProps> = ({
   const onButtonPress = () => {
     onOpen();
   };
-
-  const windowHeight = Dimensions.get("window").height;
-  const marginTop = windowHeight * 0.1;
 
   return (
     <>
