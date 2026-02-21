@@ -59,17 +59,18 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | null>(null);
-  
+
   // Determine if dropdown is open based on external or internal state
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
 
   // Find the selected item based on the selectedValue
   useEffect(() => {
-    if (selectedValue !== undefined && items.length > 0) {
-      const found = items.find(item => item.value === selectedValue);
-      if (found) {
-        setSelectedItem(found);
-      }
+    if (selectedValue !== undefined && selectedValue !== "" && items.length > 0) {
+      // Use loose equality to safely match numbers passed as strings (e.g. ID 1 vs "1")
+      const found = items.find(item => item.value == selectedValue);
+      setSelectedItem(found || null);
+    } else {
+      setSelectedItem(null);
     }
   }, [selectedValue, items]);
 
@@ -82,10 +83,10 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   const toggleDropdown = () => {
     if (disabled) return;
-    
+
     const newIsOpen = !isOpen;
     setInternalIsOpen(newIsOpen);
-    
+
     if (!newIsOpen && onClose) {
       onClose();
     }
@@ -153,7 +154,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={[
-                styles.dropdown, 
+                styles.dropdown,
                 { width: getDropdownWidth() },
                 dropdownStyle
               ]}>

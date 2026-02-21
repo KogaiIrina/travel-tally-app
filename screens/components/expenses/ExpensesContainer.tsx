@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Platform } from "react-native";
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Platform, Keyboard } from "react-native";
 import ExpenseButton from "./ExpenseButton";
 import { expensesArray, mergeCategories } from "../../../utils/expensesList";
 import useCustomCategories from "../../../db/hooks/useCustomCategories";
@@ -38,6 +38,7 @@ export default function ExpensesContainer({
   }, [customCategories]);
 
   const onExpenseButtonPress = (expenseTypeKey: string) => {
+    Keyboard.dismiss();
     setExpenseType(expenseTypeKey);
     setActiveExpenseTypeKey(expenseTypeKey);
   };
@@ -86,7 +87,9 @@ export default function ExpensesContainer({
       onPress={onAddCategoryPress}
       activeOpacity={0.7}
     >
-      <Ionicons name="add-circle" size={30} color="#4169E1" />
+      <View style={styles.addCategoryIconContainer}>
+        <Ionicons name="add" size={32} color="#4169E1" />
+      </View>
       <Text style={styles.addCategoryText}>New</Text>
     </TouchableOpacity>
   );
@@ -130,7 +133,11 @@ export default function ExpensesContainer({
 
   return (
     <>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {rows.map((row, index) => (
           <View key={`row-${index}`} style={styles.expensesRow}>
             {row}
@@ -162,16 +169,34 @@ const styles = StyleSheet.create({
   },
   addCategoryButton: {
     flex: 1,
+    height: 105,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    height: 90,
-    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "transparent",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  addCategoryIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
     backgroundColor: "#E8EEFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   addCategoryText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "600",
     color: "#4169E1",
-    marginTop: 3,
+    marginHorizontal: 4,
   },
 });

@@ -70,15 +70,18 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
       style={{
         backgroundColor: "#D0312D",
         justifyContent: "center",
-        alignItems: "flex-end",
+        alignItems: "center",
+        flexDirection: "row",
+        marginVertical: 6,
+        marginRight: 16,
+        borderRadius: 12,
+        width: 100,
       }}
     >
       <Text
         style={{
           color: "#FFFFFF",
           fontWeight: "600",
-          paddingHorizontal: 30,
-          paddingVertical: 20,
         }}
       >
         Delete
@@ -104,13 +107,6 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
             {!onBack && <Text style={styles.headerTitle}>Expenses</Text>}
           </View>
           <View style={styles.itemBox}>
-            {Object.values(expenseFilter).filter(Boolean).length > 0 && (
-              <AppliedFilterIndicator
-                expenseFilter={expenseFilter}
-                clearFilter={handleClearFilter}
-                countryFlag={countryById?.flag}
-              />
-            )}
             <DataSettingsButton />
             <ExpensesFilterButton
               onSave={setExpenseFilter}
@@ -118,6 +114,17 @@ export default function ExpensesScreen({ tripId, onBack }: Props) {
             />
           </View>
         </View>
+
+        {Object.values(expenseFilter).filter(Boolean).length > 0 && (
+          <View style={{ paddingHorizontal: 20, marginTop: 16, marginBottom: -4 }}>
+            <AppliedFilterIndicator
+              expenseFilter={expenseFilter}
+              clearFilter={handleClearFilter}
+              countryFlag={countryById?.flag}
+            />
+          </View>
+        )}
+
         <ExpensesSumPlate
           currency={stringToCurrency({
             value: homeCountry?.currency,
@@ -262,14 +269,14 @@ const styles = StyleSheet.create({
   },
   itemBox: {
     flexDirection: "row",
-    justifyContent: "flex-end",
     alignItems: "center",
-    flex: 1,
-    gap: 8,
+    justifyContent: "flex-end",
+    right: 18,
+    gap: 2,
   },
   headerTopLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   headerActionLeft: {
     justifyContent: "center",
