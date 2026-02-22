@@ -349,7 +349,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
 
           <KeyboardAvoidingView
             style={styles.keyboardAvoidingView}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={"padding"}
           >
             <View style={{ paddingHorizontal: 16, paddingTop: 20, flex: 1 }}>
               <ExpenseForm

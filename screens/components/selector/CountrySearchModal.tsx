@@ -71,7 +71,7 @@ export default function CountrySearchModal({ isOpen, onClose, onSelect, title = 
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           style={{ flex: 1, backgroundColor: "#F7F8FA" }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={"padding"}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 10 : 4,
+    paddingVertical: 10,
     marginBottom: 10,
     gap: 8,
   },

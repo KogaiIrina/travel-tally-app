@@ -107,7 +107,7 @@ export default function CreateTripModal({ isOpen, onClose }: Props) {
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           style={{ flex: 1, backgroundColor: "#F7F8FA" }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={"padding"}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -321,6 +321,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingVertical: 14,
+    paddingBottom: Platform.OS === "android" ? 24 : 14,
     borderTopWidth: 1,
     borderTopColor: "#EFEFEF",
   },
