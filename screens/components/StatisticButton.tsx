@@ -21,7 +21,7 @@ import EnhancedLegend from "./EnhancedLegend";
 import DateRangePicker from "./DateRangePicker";
 import { Ionicons } from "@expo/vector-icons";
 import useSubscriptionStatus from "../../utils/useSubscriptionStatus";
-import Purchase from "./input/Purchase";
+import { presentPaywall } from "../../utils/presentPaywall";
 
 // Get the date from one week ago
 const getOneWeekAgo = () => {
@@ -58,8 +58,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
   const [tempDate, setTempDate] = useState(new Date());
   const { hasActiveSubscription } = useSubscriptionStatus();
 
-  const [isProFeatureModalVisible, setIsProFeatureModalVisible] = useState(false);
-  const [isPromoOpened, setIsPromoOpened] = useState(false);
+
 
   const statisticData = useMemo(() => {
     if (!expenses) {
@@ -97,18 +96,8 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
       setTempDate(pickerType === "startDate" ? dateStart : dateEnd);
       setShowPicker(pickerType);
     } else {
-      setIsProFeatureModalVisible(true);
+      presentPaywall();
     }
-  };
-
-  // Close the pro feature modal
-  const closeProFeatureModal = () => {
-    setIsProFeatureModalVisible(false);
-  };
-
-  const handleSubscribe = () => {
-    setIsProFeatureModalVisible(false);
-    setIsPromoOpened(true);
   };
 
 
@@ -233,60 +222,9 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
         </Actionsheet.Content>
       </Actionsheet>
 
-      {/* Pro feature modal - explains the feature, doesn't handle payment */}
-      <Modal
-        transparent={true}
-        animationType="slide"
-        visible={isProFeatureModalVisible}
-        onRequestClose={closeProFeatureModal}
-      >
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: bgColor }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: textColor }]}>Pro Feature</Text>
-              <TouchableOpacity
-                onPress={closeProFeatureModal}
-                style={styles.modalCloseButton}
-              >
-                <Ionicons name="close" size={24} color={textColor} />
-              </TouchableOpacity>
-            </View>
 
-            <View style={styles.proFeatureContent}>
-              <Ionicons name="calendar" size={50} color={accentColor} style={styles.proFeatureIcon} />
-              <Text style={[styles.proFeatureTitle, { color: textColor }]}>
-                Custom Date Range
-              </Text>
-              <Text style={[styles.proFeatureDescription, { color: textColor }]}>
-                Custom date ranges are available exclusively for Pro users.
-                Upgrade to Pro to access detailed expense statistics for any time period.
-              </Text>
-              <Text style={[styles.proFeatureNote, { color: textColor }]}>
-                Free users can view statistics for the past 7 days only.
-              </Text>
-            </View>
 
-            <TouchableOpacity
-              onPress={handleSubscribe}
-              style={[styles.subscribeButton, { backgroundColor: accentColor }]}
-            >
-              <Text style={styles.subscribeButtonText}>Upgrade to Pro</Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={closeProFeatureModal}
-              style={styles.cancelButton}
-            >
-              <Text style={[styles.cancelButtonText, { color: textColor }]}>Maybe Later</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Purchase
-        isPromoOpened={isPromoOpened}
-        setIsPromoOpened={setIsPromoOpened}
-      />
 
       {Platform.OS === "ios" ? (
         <Modal

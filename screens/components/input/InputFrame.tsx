@@ -13,7 +13,7 @@ import ChooseCurrencyButton from "./ChooseCurrencyButton";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import Purchase from "./Purchase";
+import { presentPaywall } from "../../../utils/presentPaywall";
 import { useSubscriptionStatus } from "../../../utils/useSubscriptionStatus";
 import ProFeature from "../ProFeature";
 import { Ionicons } from "@expo/vector-icons";
@@ -90,7 +90,7 @@ export function NewInputView({
 }: InputViewProps) {
   const [showPicker, setShowPicker] = React.useState(false);
   const [internalPickerDate, setInternalPickerDate] = React.useState(new Date());
-  const [isPromoOpened, setIsPromoOpened] = React.useState(false);
+
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
 
   // Use subscription status at top level (not inside conditional function)
@@ -111,8 +111,8 @@ export function NewInputView({
       // PRO user or Android: open the date picker
       setShowPicker(true);
     } else {
-      // Non-PRO on iOS: show the paywall
-      setIsPromoOpened(true);
+      // Non-PRO on iOS: show the RevenueCat paywall
+      presentPaywall();
     }
   };
 
@@ -216,13 +216,7 @@ export function NewInputView({
         </Modal>
       )}
 
-      {/* Paywall for iOS users (Purchase self-manages visibility via isPromoOpened) */}
-      {Platform.OS === "ios" && (
-        <Purchase
-          isPromoOpened={isPromoOpened}
-          setIsPromoOpened={setIsPromoOpened}
-        />
-      )}
+
     </View>
   );
 }

@@ -6,8 +6,8 @@ import useCustomCategories from "../../../db/hooks/useCustomCategories";
 import { Ionicons } from "@expo/vector-icons";
 import AddCategoryModal from "./AddCategoryModal";
 import ProFeature from "../../components/ProFeature";
-import Purchase from "../../components/input/Purchase";
 import { useSubscriptionStatus } from "../../../utils/useSubscriptionStatus";
+import { presentPaywall } from "../../../utils/presentPaywall";
 
 interface AddExpensesProps {
   setExpenseType: (text: string) => void;
@@ -23,7 +23,7 @@ export default function ExpensesContainer({
   const { data: customCategories } = useCustomCategories();
   const [allExpenseButtons, setAllExpenseButtons] = useState(expensesArray);
   const [showAddCategory, setShowAddCategory] = useState(false);
-  const [isPromoOpened, setIsPromoOpened] = useState(false);
+
   const { hasActiveSubscription } = useSubscriptionStatus();
 
   // Check if user has access to Pro features (iOS with subscription or any Android user)
@@ -47,7 +47,7 @@ export default function ExpensesContainer({
     if (hasProAccess) {
       setShowAddCategory(true);
     } else {
-      setIsPromoOpened(true);
+      presentPaywall();
     }
   };
 
@@ -55,18 +55,7 @@ export default function ExpensesContainer({
     setShowAddCategory(false);
   };
 
-  // Function to render the paywall modal
-  const getPaywall = () => {
-    if (Platform.OS === 'ios' && isPromoOpened && !hasActiveSubscription) {
-      return (
-        <Purchase
-          isPromoOpened={isPromoOpened}
-          setIsPromoOpened={setIsPromoOpened}
-        />
-      );
-    }
-    return null;
-  };
+
 
   const buttons = allExpenseButtons.map((expense) => (
     <ExpenseButton
@@ -152,8 +141,7 @@ export default function ExpensesContainer({
         onClose={onCloseAddCategory}
       />
 
-      {/* Render the paywall modal */}
-      {getPaywall()}
+
     </>
   );
 }
