@@ -15,8 +15,10 @@ import { restoreDb, dumpDb } from "./utils/dataRestore";
 import { Actionsheet, Box, Button, useDisclose } from "native-base";
 import HomeCurrencyButton from "../input/HomeCurrencyButton";
 import useHomeCountry from "../../../db/hooks/useHomeCountry";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DataSettingsButton() {
+  const queryClient = useQueryClient();
   const { data: expenses, isLoading } = useExpenses({});
   const { data: homeCountry } = useHomeCountry();
 
@@ -61,9 +63,10 @@ export default function DataSettingsButton() {
             { text: "Cancel" },
             {
               text: "OK",
-              onPress: () => {
+              onPress: async () => {
                 try {
-                  restoreDb(content);
+                  await restoreDb(content);
+                  queryClient.invalidateQueries();
                   Alert.alert("Import Successful");
                 } catch (error) {
                   Alert.alert("Import Failed", (error as Error)?.message);
