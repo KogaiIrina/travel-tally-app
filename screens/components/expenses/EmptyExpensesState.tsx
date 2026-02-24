@@ -34,7 +34,7 @@ const EmptyExpensesState: React.FC<Props> = ({ hasTrips, onCreateTrip }) => {
 
         {!hasTrips && (
           <Pressable style={styles.createButton} onPress={onCreateTrip}>
-            <Text style={styles.createButtonText}>+ Create Trip</Text>
+            <Text style={styles.createButtonText}>+ Add Destination</Text>
           </Pressable>
         )}
       </View>

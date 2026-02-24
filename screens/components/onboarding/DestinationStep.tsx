@@ -1,8 +1,9 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { StyleSheet, Text, View, Dimensions, Animated } from "react-native";
+import { StyleSheet, Text, View, Animated, TextInput, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
 import { Button } from "native-base";
 import useCountries from "../../../db/hooks/useCountries";
-import { useHomeCountryMutation } from "../../../db/hooks/useHomeCountry";
+import { useAddTrip } from "../../../db/hooks/useTrips";
+import useHomeCountry from "../../../db/hooks/useHomeCountry";
 import CountrySearchModal from "../selector/CountrySearchModal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,13 +12,12 @@ interface Props {
   onComplete: () => void;
 }
 
-export default function CurrencyStep({ onComplete }: Props) {
+export default function DestinationStep({ onComplete }: Props) {
   const { data: countries } = useCountries();
-  const {
-    mutate: setHomeCountry,
-    isPending: updatingHomeCountry,
-    isSuccess: homeCountryUpdated,
-  } = useHomeCountryMutation();
+  const { data: homeCountry } = useHomeCountry();
+  const { mutate: addTrip, isPending } = useAddTrip();
+
+  const [name, setName] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState<number>();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -39,27 +39,38 @@ export default function CurrencyStep({ onComplete }: Props) {
     ]).start();
   }, []);
 
-  useEffect(() => {
-    if (homeCountryUpdated) {
-      onComplete();
-    }
-  }, [homeCountryUpdated, onComplete]);
-
-  const onSave = () => {
-    if (countries && selectedCountryId !== undefined) {
-      setHomeCountry(selectedCountryId);
-    }
-  };
-
-
-
   const selectedCountry = useMemo(() => {
     if (!selectedCountryId || !countries) return null;
     return countries.find((c) => c.id === selectedCountryId);
   }, [selectedCountryId, countries]);
 
+  const onSave = () => {
+    if (!name.trim() || !selectedCountryId || !homeCountry?.currency || !selectedCountry) {
+      return;
+    }
+
+    addTrip(
+      {
+        name: name.trim(),
+        country_id: selectedCountryId,
+        base_currency: homeCountry.currency,
+        target_currency: selectedCountry.currency,
+      },
+      {
+        onSuccess: () => {
+          onComplete();
+        },
+      }
+    );
+  };
+
+  const isFormValid = name.trim().length > 0 && selectedCountryId !== undefined;
+
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <LinearGradient
         colors={["#f8f9fa", "#e9ecef"]}
         style={StyleSheet.absoluteFillObject}
@@ -75,20 +86,32 @@ export default function CurrencyStep({ onComplete }: Props) {
         ]}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Home Country and Currency</Text>
+          <Text style={styles.title}>Your First Destination</Text>
           <Text style={styles.subtitle}>
-            Please select the country you are from. This is mandatory, as all your future expenses will be converted to the home currency for your statistics.
+            Where are you heading to? Let's setup your first trip to start tracking expenses.
           </Text>
         </View>
 
         <View style={styles.card}>
+          <Text style={styles.label}>Trip Name</Text>
+          <TextInput
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. Summer in Paris"
+            placeholderTextColor="#B0B0B0"
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+          />
+
+          <Text style={styles.label}>Destination Country</Text>
           <Button
             style={styles.selectButton}
             onPress={() => setIsModalOpen(true)}
             variant="outline"
           >
             <Text style={styles.selectButtonText}>
-              {selectedCountry ? `${selectedCountry.flag} ${selectedCountry.country}` : "Select Home Country"}
+              {selectedCountry ? `${selectedCountry.flag} ${selectedCountry.country}` : "Select Country"}
             </Text>
           </Button>
 
@@ -105,7 +128,7 @@ export default function CurrencyStep({ onComplete }: Props) {
             <View style={styles.selectedRow}>
               <Ionicons name="checkmark-circle" size={24} color="#4ade80" />
               <Text style={styles.selectedText}>
-                Selected: {selectedCountry?.country} ({selectedCountry?.currency})
+                Currency: {selectedCountry?.currency}
               </Text>
             </View>
           )}
@@ -113,19 +136,19 @@ export default function CurrencyStep({ onComplete }: Props) {
           <Button
             style={[
               styles.button,
-              (!selectedCountryId || updatingHomeCountry) && styles.buttonDisabled
+              (!isFormValid || isPending) && styles.buttonDisabled
             ]}
             onPress={onSave}
-            isDisabled={!selectedCountryId || updatingHomeCountry}
-            isLoading={updatingHomeCountry}
+            isDisabled={!isFormValid || isPending}
+            isLoading={isPending}
           >
-            <Text style={[styles.buttonText, (!selectedCountryId) && styles.buttonTextDisabled]}>
+            <Text style={[styles.buttonText, (!isFormValid) && styles.buttonTextDisabled]}>
               Continue
             </Text>
           </Button>
         </View>
       </Animated.View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -135,7 +158,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 100,
+    paddingTop: 80,
     alignItems: "center",
     paddingHorizontal: 24,
   },
@@ -161,12 +184,31 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 24,
-    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
     shadowRadius: 24,
     elevation: 5,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4a5568",
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  input: {
+    width: "100%",
+    height: 56,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E8EEFF",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1A1A1A",
+    marginBottom: 20,
+    textAlign: "center",
   },
   selectButton: {
     width: "100%",
@@ -177,6 +219,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     marginBottom: 20,
+    alignItems: "center",
+    paddingHorizontal: 16,
   },
   selectButtonText: {
     fontSize: 16,
@@ -213,6 +257,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
+    textAlign: "center",
   },
   buttonTextDisabled: {
     color: "#94a3b8",

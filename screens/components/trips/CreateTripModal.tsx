@@ -189,7 +189,7 @@ export default function CreateTripModal({ isOpen, onClose }: Props) {
               disabled={!canSave || isPending}
             >
               <Text style={styles.saveButtonText}>
-                {isPending ? "Creating..." : "Create Trip"}
+                {isPending ? "Creating..." : "Add New Destination"}
               </Text>
             </Pressable>
           </View>
