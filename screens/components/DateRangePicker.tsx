@@ -31,14 +31,12 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onEditPress,
 }) => {
   const [isEditing, setIsEditing] = React.useState(false);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
-  const bgColor = isDark ? '#333333' : '#F5F5F5';
-  const textColor = isDark ? '#E5E5E5' : '#333333';
-  const labelColor = isDark ? '#AAAAAA' : '#666666';
-  const iconColor = isDark ? '#4F8EFF' : '#2C65E1';
-  const activePresetColor = isDark ? '#1c2c4d' : '#E8EEFF';
+  const bgColor = '#F5F5F5';
+  const textColor = '#333333';
+  const labelColor = '#666666';
+  const iconColor = '#2C65E1';
+  const activePresetColor = '#E8EEFF';
 
   const isOneWeek = () => {
     const start = new Date(startDate);

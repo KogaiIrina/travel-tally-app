@@ -19,8 +19,7 @@ const EnhancedLegend: React.FC<EnhancedLegendProps> = ({
   data,
   showPercentage = true,
 }) => {
-  const colorScheme = useColorScheme();
-  const textColor = colorScheme === 'dark' ? '#E5E5E5' : '#333333';
+  const textColor = '#333333';
 
   const renderItem = ({ item }: { item: StatisticData }) => {
     const percentage = parseFloat(item.text.replace('%', ''));

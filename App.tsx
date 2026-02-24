@@ -152,15 +152,36 @@ function Entrypoint() {
               "SELECT country_id, MAX(selected_currency) as selected_currency, MAX(home_currency) as home_currency FROM expenses WHERE country_id IS NOT NULL GROUP BY country_id"
             );
 
+            // Get home country id
+            const homeCountryRows = await db.getAllAsync<{ home_country_id: number }>("SELECT home_country_id FROM home_country LIMIT 1");
+            const homeCountryId = homeCountryRows.length > 0 ? homeCountryRows[0].home_country_id : null;
+
+            let homeCurrency = "USD"; // Default fallback
+            if (homeCountryId) {
+              const homeCountryInfo = await db.getAllAsync<{ currency: string }>("SELECT currency FROM countries WHERE id = ?", [homeCountryId]);
+              if (homeCountryInfo.length > 0 && homeCountryInfo[0].currency) {
+                homeCurrency = homeCountryInfo[0].currency;
+              }
+            }
+
+            // Get latest expense country_id
+            const latestExpenseRows = await db.getAllAsync<{ country_id: number }>("SELECT country_id FROM expenses WHERE country_id IS NOT NULL ORDER BY date DESC LIMIT 1");
+            const latestCountryId = latestExpenseRows.length > 0 ? latestExpenseRows[0].country_id : null;
+
             for (const exp of existingExpenses) {
-              // Find country name
-              const countryInfo = await db.getAllAsync<{ country: string }>("SELECT country FROM countries WHERE id = ?", [exp.country_id]);
+              // Find country name and currency
+              const countryInfo = await db.getAllAsync<{ country: string, currency: string }>("SELECT country, currency FROM countries WHERE id = ?", [exp.country_id]);
               const countryName = countryInfo.length > 0 ? countryInfo[0].country : "Unknown Country";
+
+              const targetCurrency = countryInfo.length > 0 && countryInfo[0].currency ? countryInfo[0].currency : exp.selected_currency;
+              const baseCurrency = homeCurrency;
+
+              const isActive = exp.country_id === latestCountryId ? 1 : 0;
 
               // Create a single legacy trip for this country
               await tx.executeSql(
-                "INSERT INTO trips (name, country_id, base_currency, target_currency, is_active) VALUES (?, ?, ?, ?, 0)",
-                [`Trip to ${countryName}`, exp.country_id, exp.home_currency, exp.selected_currency]
+                "INSERT INTO trips (name, country_id, base_currency, target_currency, is_active) VALUES (?, ?, ?, ?, ?)",
+                [`Trip to ${countryName}`, exp.country_id, baseCurrency, targetCurrency, isActive]
               );
 
               // Get the trip id

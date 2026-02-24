@@ -75,10 +75,8 @@ export default function StatisticScreen() {
     }).sort((a, b) => b.value - a.value);
   }, [expenses]);
 
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const bgColor = isDark ? "#1A1A1A" : "white";
-  const textColor = isDark ? "#E5E5E5" : "#333333";
+  const bgColor = "#F7F8FA";
+  const textColor = "#1A1A1A";
   const accentColor = "#4169E1";
 
   // Handle date picker open
@@ -102,7 +100,6 @@ export default function StatisticScreen() {
           setDateEnd(selectedDate);
           setShowPicker("none");
         }
-        refetch();
       } else if (event.type === "dismissed") {
         setShowPicker("none");
       }
@@ -121,7 +118,6 @@ export default function StatisticScreen() {
       setDateEnd(tempDate);
       setShowPicker("none");
     }
-    refetch();
   };
 
   const formatDateRange = () => {

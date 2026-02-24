@@ -341,8 +341,8 @@ const BlueButton: React.FC<BlueButtonProps> = ({
           setDate(new Date());
           onClose();
         },
-        onError: () => {
-          Alert.alert("something went wrong");
+        onError: (error) => {
+          Alert.alert("something went wrong", (error as Error)?.message || String(error));
         },
       }
     );
