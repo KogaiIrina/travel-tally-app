@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text } from "react-native";
-import { View } from "native-base";
+import { StyleSheet, Text, View } from "react-native";
 import useCountries from "../../../db/hooks/useCountries";
 import { useSetting } from "../../../utils/settings";
 import CustomDropdown from "../CustomDropdown";

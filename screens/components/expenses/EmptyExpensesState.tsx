@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View, Text, Dimensions, Pressable } from 'react-native';
-import { useColorModeValue } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
@@ -11,7 +10,6 @@ interface Props {
 const EmptyExpensesState: React.FC<Props> = ({ hasTrips, onCreateTrip }) => {
   const textColor = '#1A1A1A';
   const subtextColor = '#666666';
-  const arrowColor = '#4169E1';
 
   return (
     <View style={styles.container}>

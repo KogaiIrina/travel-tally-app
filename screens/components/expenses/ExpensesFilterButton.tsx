@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Pressable, Text, View, Dimensions } from "react-native";
-import { Actionsheet, Box, useDisclose } from "native-base";
+import { StyleSheet, Pressable, Text, View, Dimensions, Modal, TouchableWithoutFeedback } from "react-native";
+import { useDisclose } from "../../../utils/useDisclose";
 import { useVisitedCountries } from "../../../db/hooks/useCountries";
 import { Ionicons } from "@expo/vector-icons";
 import FilterIcon from "./icons/filter";
@@ -119,18 +119,17 @@ export default function ExpensesFilterButton({
       <Pressable style={styles.button} onPress={onButtonPress}>
         <FilterIcon />
       </Pressable>
-      <Actionsheet
-        style={styles.container}
-        isOpen={isOpen}
-        onClose={onClose}
-        hideDragIndicator
-      >
-        <Actionsheet.Content>
-          <Box style={styles.header}>
+      <Modal visible={isOpen} animationType="slide" transparent={true} onRequestClose={onClose}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={styles.bottomSheet}>
+          <View style={styles.dragHandle} />
+          <View style={styles.header}>
             <Text style={styles.text}>Filter</Text>
-          </Box>
+          </View>
           <View style={styles.selectorsBox}>
-            <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
+            <View style={{ backgroundColor: "transparent", width: "100%", alignItems: "center", paddingVertical: 10 }}>
               <CustomDropdown
                 items={countryList}
                 selectedValue={selectedCountryId}
@@ -142,8 +141,8 @@ export default function ExpensesFilterButton({
                   setSelectedCountryId(value === "no-country" ? undefined : Number(value))
                 }
               />
-            </Actionsheet.Item>
-            <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
+            </View>
+            <View style={{ backgroundColor: "transparent", width: "100%", alignItems: "center", paddingVertical: 10 }}>
               <CustomDropdown
                 items={expensesList}
                 selectedValue={selectedCategory}
@@ -155,8 +154,8 @@ export default function ExpensesFilterButton({
                   setSelectedCategory(value === "no-category" ? "" : value)
                 }
               />
-            </Actionsheet.Item>
-            <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
+            </View>
+            <View style={{ backgroundColor: "transparent", width: "100%", alignItems: "center", paddingVertical: 10 }}>
               <CustomDropdown
                 items={monthsList}
                 selectedValue={selectedMonth}
@@ -168,14 +167,14 @@ export default function ExpensesFilterButton({
                   setSelectedMonth(value === "no-month" ? "" : value)
                 }
               />
-            </Actionsheet.Item>
+            </View>
           </View>
           <View style={styles.buttonContainer}>
             <SmallPrimaryButton onPress={internalOnSave} text="Save" />
             <SmallWhiteButton onPress={internalOnClose} text="Back" />
           </View>
-        </Actionsheet.Content>
-      </Actionsheet>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -266,5 +265,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingTop: 15,
     paddingBottom: 5,
+    alignItems: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
+    maxHeight: "90%",
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#D0D0D0",
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: 8,
   },
 });

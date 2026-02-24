@@ -1,5 +1,4 @@
 import React from "react";
-import { NativeBaseProvider } from "native-base";
 import { View } from "react-native";
 import ExpensesScreen from "./ExpensesScreen";
 import TripsScreen from "./TripsScreen";
@@ -24,35 +23,31 @@ export default function MainScreen() {
 
   if (showRealApp) {
     return (
-      <NativeBaseProvider>
-        <View style={{ flex: 1, backgroundColor: "#F7F8FA" }}>
-          {selectedTripId ? (
-            <ExpensesScreen
-              tripId={selectedTripId}
-              onBack={() => setSelectedTripId(null)}
-            />
-          ) : (
-            <>
-              <View style={{ flex: 1 }}>
-                {activeTab === "expenses" ? (
-                  <ExpensesScreen />
-                ) : activeTab === "statistics" ? (
-                  <StatisticScreen />
-                ) : (
-                  <TripsScreen onSelectTrip={handleSelectTrip} />
-                )}
-              </View>
-              <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-            </>
-          )}
-        </View>
-      </NativeBaseProvider>
+      <View style={{ flex: 1, backgroundColor: "#F7F8FA" }}>
+        {selectedTripId ? (
+          <ExpensesScreen
+            tripId={selectedTripId}
+            onBack={() => setSelectedTripId(null)}
+          />
+        ) : (
+          <>
+            <View style={{ flex: 1 }}>
+              {activeTab === "expenses" ? (
+                <ExpensesScreen />
+              ) : activeTab === "statistics" ? (
+                <StatisticScreen />
+              ) : (
+                <TripsScreen onSelectTrip={handleSelectTrip} />
+              )}
+            </View>
+            <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          </>
+        )}
+      </View>
     );
   } else {
     return (
-      <NativeBaseProvider>
-        <OnboardingFlow onComplete={_onDone} />
-      </NativeBaseProvider>
+      <OnboardingFlow onComplete={_onDone} />
     );
   }
 }

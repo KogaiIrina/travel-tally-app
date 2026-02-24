@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, FlatList } from 'react-native';
-import { useColorModeValue } from 'native-base';
+import { StyleSheet, View, Text, FlatList, useColorScheme } from 'react-native';
 import { capitalizeFirstLetter } from '../../utils/capitalizeFirstLetter';
 
 interface StatisticData {
@@ -20,11 +19,12 @@ const EnhancedLegend: React.FC<EnhancedLegendProps> = ({
   data,
   showPercentage = true,
 }) => {
-  const textColor = useColorModeValue('#333333', '#E5E5E5');
+  const colorScheme = useColorScheme();
+  const textColor = colorScheme === 'dark' ? '#E5E5E5' : '#333333';
 
   const renderItem = ({ item }: { item: StatisticData }) => {
     const percentage = parseFloat(item.text.replace('%', ''));
-    
+
     return (
       <View style={styles.legendItem}>
         <View style={styles.legendLeft}>

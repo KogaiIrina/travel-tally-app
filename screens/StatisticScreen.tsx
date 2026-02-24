@@ -10,8 +10,8 @@ import {
   Dimensions,
   SafeAreaView,
   ScrollView,
+  useColorScheme,
 } from "react-native";
-import { useColorModeValue } from "native-base";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -75,8 +75,10 @@ export default function StatisticScreen() {
     }).sort((a, b) => b.value - a.value);
   }, [expenses]);
 
-  const bgColor = useColorModeValue("white", "#1A1A1A");
-  const textColor = useColorModeValue("#333333", "#E5E5E5");
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const bgColor = isDark ? "#1A1A1A" : "white";
+  const textColor = isDark ? "#E5E5E5" : "#333333";
   const accentColor = "#4169E1";
 
   // Handle date picker open

@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { StyleSheet, Text, View, Dimensions, Animated } from "react-native";
-import { Button } from "native-base";
+import { StyleSheet, Text, View, Dimensions, Animated, TouchableOpacity, ActivityIndicator } from "react-native";
 import useCountries from "../../../db/hooks/useCountries";
 import { useHomeCountryMutation } from "../../../db/hooks/useHomeCountry";
 import CountrySearchModal from "../selector/CountrySearchModal";
@@ -82,15 +81,14 @@ export default function CurrencyStep({ onComplete }: Props) {
         </View>
 
         <View style={styles.card}>
-          <Button
+          <TouchableOpacity
             style={styles.selectButton}
             onPress={() => setIsModalOpen(true)}
-            variant="outline"
           >
             <Text style={styles.selectButtonText}>
               {selectedCountry ? `${selectedCountry.flag} ${selectedCountry.country}` : "Select Home Country"}
             </Text>
-          </Button>
+          </TouchableOpacity>
 
           <CountrySearchModal
             isOpen={isModalOpen}
@@ -110,19 +108,22 @@ export default function CurrencyStep({ onComplete }: Props) {
             </View>
           )}
 
-          <Button
+          <TouchableOpacity
             style={[
               styles.button,
               (!selectedCountryId || updatingHomeCountry) && styles.buttonDisabled
             ]}
             onPress={onSave}
-            isDisabled={!selectedCountryId || updatingHomeCountry}
-            isLoading={updatingHomeCountry}
+            disabled={!selectedCountryId || updatingHomeCountry}
           >
-            <Text style={[styles.buttonText, (!selectedCountryId) && styles.buttonTextDisabled]}>
-              Continue
-            </Text>
-          </Button>
+            {updatingHomeCountry ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={[styles.buttonText, (!selectedCountryId) && styles.buttonTextDisabled]}>
+                Continue
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
       </Animated.View>
     </View>
@@ -176,6 +177,7 @@ const styles = StyleSheet.create({
     borderColor: "#E8EEFF",
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
+    paddingHorizontal: 16,
     marginBottom: 20,
   },
   selectButtonText: {
@@ -205,6 +207,8 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 16,
     marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonDisabled: {
     backgroundColor: "#e2e8f0",

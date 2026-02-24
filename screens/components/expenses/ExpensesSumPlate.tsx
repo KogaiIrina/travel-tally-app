@@ -1,6 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
-import { View, Text } from "native-base";
+import { StyleSheet, View, Text } from "react-native";
 import { currencyList } from "../../../utils/currencyList";
 import useTotalExpenses from "../../../db/hooks/useTotalExpenses";
 import { UseExpensesFilter } from "../../../db/hooks/useExpenses";

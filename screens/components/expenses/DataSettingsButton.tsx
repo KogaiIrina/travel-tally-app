@@ -7,13 +7,16 @@ import {
   View,
   Text,
   ActivityIndicator,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
 } from "react-native";
 import useExpenses from "../../../db/hooks/useExpenses";
 import SettingsIcon from "./icons/settings";
 import exportFile from "./utils/export";
 import importFile from "./utils/importFile";
 import { restoreDb, dumpDb } from "./utils/dataRestore";
-import { Actionsheet, Box, Button, useDisclose } from "native-base";
+import { useDisclose } from "../../../utils/useDisclose";
 import HomeCurrencyButton from "../input/HomeCurrencyButton";
 import useHomeCountry from "../../../db/hooks/useHomeCountry";
 import { useQueryClient } from "@tanstack/react-query";
@@ -122,38 +125,39 @@ export default function DataSettingsButton() {
       <Pressable style={styles.button} onPress={onButtonPress}>
         <SettingsIcon />
       </Pressable>
-      <Actionsheet
-        style={styles.container}
-        isOpen={isOpen}
-        onClose={onClose}
-        hideDragIndicator
-      >
-        <Actionsheet.Content>
-          <Box style={styles.header}>
+      <Modal visible={isOpen} animationType="slide" transparent={true} onRequestClose={onClose}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={styles.bottomSheet}>
+          <View style={styles.dragHandle} />
+          <View style={styles.header}>
             <Text style={styles.text}>Settings</Text>
-          </Box>
+          </View>
           <View style={styles.selectorsBox}>
-            <Actionsheet.Item
+            <View
               style={{
                 backgroundColor: "transparent",
                 justifyContent: "center",
                 alignItems: "center",
+                width: "100%",
+                paddingHorizontal: 20,
               }}
             >
               <View style={styles.buttonGroup}>
-                <Button
-                  style={styles.exportImportButton}
+                <TouchableOpacity
+                  style={[styles.exportImportButton, isLoading && styles.buttonDisabled]}
                   onPress={exportData}
                   disabled={isLoading}
                 >
                   <Text style={styles.text}>Export Data</Text>
-                </Button>
-                <Button style={styles.exportImportButton} onPress={importData}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.exportImportButton} onPress={importData}>
                   <Text style={styles.text}>Import Data</Text>
-                </Button>
+                </TouchableOpacity>
                 {Platform.OS === 'ios' && (
-                  <Button
-                    style={styles.exportImportButton}
+                  <TouchableOpacity
+                    style={[Platform.OS === 'ios' ? styles.exportImportButton : styles.exportImportButtonLast, isRestoring && styles.buttonDisabled]}
                     onPress={handleRestorePurchases}
                     disabled={isRestoring}
                   >
@@ -162,14 +166,16 @@ export default function DataSettingsButton() {
                     ) : (
                       <Text style={styles.text}>Restore Purchases</Text>
                     )}
-                  </Button>
+                  </TouchableOpacity>
                 )}
-                {!homeCountry && <HomeCurrencyButton />}
+                <View style={{ paddingTop: 16, width: "100%" }}>
+                  {!homeCountry && <HomeCurrencyButton />}
+                </View>
               </View>
-            </Actionsheet.Item>
+            </View>
           </View>
-        </Actionsheet.Content>
-      </Actionsheet>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -182,9 +188,10 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   buttonGroup: {
-    height: 60,
-    alignContent: "center",
     width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    overflow: "hidden",
   },
   selectorsBox: {
     height: 280,
@@ -210,15 +217,17 @@ const styles = StyleSheet.create({
     height: 56,
     width: "100%",
     backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 10,
-    borderColor: "#E8EEFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E0E0E0",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  exportImportButtonLast: {
+    height: 56,
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    paddingHorizontal: 20,
   },
   text: {
     fontWeight: "700",
@@ -229,5 +238,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingTop: 15,
     paddingBottom: 15,
+    alignItems: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 8,
+    paddingBottom: Platform.OS === "ios" ? 40 : 24,
+    maxHeight: "90%",
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#D0D0D0",
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });

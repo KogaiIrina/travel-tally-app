@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Dimensions } from 'react-native';
-import { useColorModeValue } from 'native-base';
+import { StyleSheet, View, TouchableOpacity, Dimensions, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import StatisticIcon from './expenses/icons/statistic';
 
@@ -13,8 +12,11 @@ const BottomActionBar: React.FC<BottomActionBarProps> = ({
   onAddPress,
   onStatsPress,
 }) => {
-  const bgColor = useColorModeValue('#FFFFFF', '#1A1A1A');
-  const borderColor = useColorModeValue('#E5E5E5', '#333333');
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const bgColor = isDark ? '#1A1A1A' : '#FFFFFF';
+  const borderColor = isDark ? '#333333' : '#E5E5E5';
   const addButtonColor = '#4169E1';
 
   return (
@@ -22,7 +24,7 @@ const BottomActionBar: React.FC<BottomActionBarProps> = ({
       <View style={styles.content}>
         {/* Left side - empty for now */}
         <View style={styles.sideContainer} />
-        
+
         {/* Center - Add button */}
         <View style={styles.centerContainer}>
           <TouchableOpacity
@@ -33,7 +35,7 @@ const BottomActionBar: React.FC<BottomActionBarProps> = ({
             <Ionicons name="add" size={36} color="white" />
           </TouchableOpacity>
         </View>
-        
+
         {/* Right side - Stats button */}
         <View style={styles.rightContainer}>
           <TouchableOpacity

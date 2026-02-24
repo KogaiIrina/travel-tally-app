@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { StyleSheet, Text, View, Animated, TextInput, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
-import { Button } from "native-base";
+import { StyleSheet, Text, View, Animated, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, ActivityIndicator } from "react-native";
 import useCountries from "../../../db/hooks/useCountries";
 import { useAddTrip } from "../../../db/hooks/useTrips";
 import useHomeCountry from "../../../db/hooks/useHomeCountry";
@@ -105,15 +104,14 @@ export default function DestinationStep({ onComplete }: Props) {
           />
 
           <Text style={styles.label}>Destination Country</Text>
-          <Button
+          <TouchableOpacity
             style={styles.selectButton}
             onPress={() => setIsModalOpen(true)}
-            variant="outline"
           >
             <Text style={styles.selectButtonText}>
               {selectedCountry ? `${selectedCountry.flag} ${selectedCountry.country}` : "Select Country"}
             </Text>
-          </Button>
+          </TouchableOpacity>
 
           <CountrySearchModal
             isOpen={isModalOpen}
@@ -133,19 +131,22 @@ export default function DestinationStep({ onComplete }: Props) {
             </View>
           )}
 
-          <Button
+          <TouchableOpacity
             style={[
               styles.button,
               (!isFormValid || isPending) && styles.buttonDisabled
             ]}
             onPress={onSave}
-            isDisabled={!isFormValid || isPending}
-            isLoading={isPending}
+            disabled={!isFormValid || isPending}
           >
-            <Text style={[styles.buttonText, (!isFormValid) && styles.buttonTextDisabled]}>
-              Continue
-            </Text>
-          </Button>
+            {isPending ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={[styles.buttonText, (!isFormValid) && styles.buttonTextDisabled]}>
+                Continue
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
       </Animated.View>
     </KeyboardAvoidingView>
@@ -219,7 +220,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     marginBottom: 20,
-    alignItems: "center",
     paddingHorizontal: 16,
   },
   selectButtonText: {
@@ -249,6 +249,8 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 16,
     marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonDisabled: {
     backgroundColor: "#e2e8f0",

@@ -26,7 +26,7 @@ import { currencyList } from "../utils/currencyList";
 import AppliedFilterIndicator from "../organisms/AppliedFilterIndicator";
 import { useCountryById } from "../db/hooks/useCountries";
 import { getCurrentMonth } from "../utils/getCurrentMonth";
-import { useDisclose } from "native-base";
+import { useDisclose } from "../utils/useDisclose";
 import EmptyExpensesState from "./components/expenses/EmptyExpensesState";
 import CreateTripModal from "./components/trips/CreateTripModal";
 import useTrips from "../db/hooks/useTrips";

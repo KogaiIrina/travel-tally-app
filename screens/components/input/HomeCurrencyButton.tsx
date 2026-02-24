@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View, Dimensions } from "react-native";
-import { Actionsheet, Button, useDisclose } from "native-base";
+import { StyleSheet, Text, View, Dimensions, Modal, TouchableWithoutFeedback, TouchableOpacity, SafeAreaView, Platform } from "react-native";
+import { useDisclose } from "../../../utils/useDisclose";
 import useCountries from "../../../db/hooks/useCountries";
 import useHomeCountry, {
   useHomeCountryMutation,
@@ -58,34 +58,40 @@ export default function HomeCurrencyButton() {
   return (
     <>
       <View>
-        <Button style={styles.buttonStyle} onPress={onButtonPress}>
+        <TouchableOpacity style={styles.buttonStyle} onPress={onButtonPress}>
           <Text style={styles.buttonText}>Home Country</Text>
-        </Button>
-        <Actionsheet isOpen={isOpen} onClose={onClose}>
-          <Actionsheet.Content style={styles.actionsheetContent}>
-            <Actionsheet.Item style={styles.actionsheetItem}>
-              <View style={styles.container}>
-                <Text style={styles.text}>Home Currency</Text>
-                <View style={styles.dropdownWrapper}>
-                  <CustomDropdown
-                    items={dropdownItems}
-                    selectedValue={selectedCountryId || homeCountry?.id}
-                    onValueChange={(value) => setSelectedCountryId(value)}
-                    placeholder="Choose Home Currency"
-                    leftIcon={<Text style={styles.iconText}>{selectedCountry?.flag || "💰"}</Text>}
-                    width={SCREEN_WIDTH * 0.85}
-                    showIcons={false}
+        </TouchableOpacity>
+        <Modal visible={isOpen} animationType="slide" transparent={true} onRequestClose={onClose}>
+          <TouchableWithoutFeedback onPress={onClose}>
+            <View style={styles.modalOverlay} />
+          </TouchableWithoutFeedback>
+          <View style={styles.bottomSheet}>
+            <SafeAreaView>
+              <View style={styles.dragHandle} />
+              <View style={styles.actionsheetItem}>
+                <View style={styles.contentContainer}>
+                  <Text style={styles.text}>Home Currency</Text>
+                  <View style={styles.dropdownWrapper}>
+                    <CustomDropdown
+                      items={dropdownItems}
+                      selectedValue={selectedCountryId || homeCountry?.id}
+                      onValueChange={(value) => setSelectedCountryId(value)}
+                      placeholder="Choose Home Currency"
+                      leftIcon={<Text style={styles.iconText}>{selectedCountry?.flag || "💰"}</Text>}
+                      width={SCREEN_WIDTH * 0.85}
+                      showIcons={false}
+                    />
+                  </View>
+                  <YellowButton
+                    disabled={updatingHomeCountry}
+                    onPress={onSave}
+                    text="Save"
                   />
                 </View>
-                <YellowButton
-                  disabled={updatingHomeCountry}
-                  onPress={onSave}
-                  text="Save"
-                />
               </View>
-            </Actionsheet.Item>
-          </Actionsheet.Content>
-        </Actionsheet>
+            </SafeAreaView>
+          </View>
+        </Modal>
       </View>
     </>
   );
@@ -93,23 +99,19 @@ export default function HomeCurrencyButton() {
 
 const styles = StyleSheet.create({
   buttonStyle: {
-    height: 50,
-    width: 330,
-    backgroundColor: "#F3F6FF",
-    borderWidth: 1,
-    borderRadius: 10,
-    marginBottom: 5,
-    borderColor: "#C3C5F3",
+    height: 56,
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#E0E0E0",
   },
-  container: {
+  contentContainer: {
     alignItems: "center",
     width: 350,
     backgroundColor: "transparent",
     paddingVertical: 20,
-  },
-  actionsheetContent: {
-    width: "100%",
-    alignItems: "center",
   },
   actionsheetItem: {
     backgroundColor: "transparent",
@@ -139,9 +141,31 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   buttonText: {
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 18,
-    lineHeight: 21,
-    color: "#494EBF",
+    color: "#1A1A1A",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 8,
+    paddingBottom: Platform.OS === "ios" ? 40 : 24,
+    maxHeight: "90%",
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#D0D0D0",
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: 8,
   },
 });

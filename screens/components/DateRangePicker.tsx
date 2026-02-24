@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
-import { useColorModeValue } from 'native-base';
+import { StyleSheet, View, Text, TouchableOpacity, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface DateRangePickerProps {
@@ -32,11 +31,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onEditPress,
 }) => {
   const [isEditing, setIsEditing] = React.useState(false);
-  const bgColor = useColorModeValue('#F5F5F5', '#333333');
-  const textColor = useColorModeValue('#333333', '#E5E5E5');
-  const labelColor = useColorModeValue('#666666', '#AAAAAA');
-  const iconColor = useColorModeValue('#2C65E1', '#4F8EFF');
-  const activePresetColor = useColorModeValue('#E8EEFF', '#1c2c4d');
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const bgColor = isDark ? '#333333' : '#F5F5F5';
+  const textColor = isDark ? '#E5E5E5' : '#333333';
+  const labelColor = isDark ? '#AAAAAA' : '#666666';
+  const iconColor = isDark ? '#4F8EFF' : '#2C65E1';
+  const activePresetColor = isDark ? '#1c2c4d' : '#E8EEFF';
 
   const isOneWeek = () => {
     const start = new Date(startDate);

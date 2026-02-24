@@ -14,7 +14,7 @@ import {
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useDisclose } from "native-base";
+import { useDisclose } from "../../utils/useDisclose";
 import PlusIcon from "./expenses/icons/plus";
 import ExpensesContainer from "./expenses/ExpensesContainer";
 import BigBlueButton from "./BigBlueButton";

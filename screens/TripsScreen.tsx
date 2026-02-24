@@ -4,7 +4,7 @@ import useTrips, { useDeleteTrip, useSetActiveTrip, useActiveTrip } from "../db/
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import CreateTripModal from "./components/trips/CreateTripModal";
-import { useDisclose } from "native-base";
+import { useDisclose } from "../utils/useDisclose";
 import BlueButton from "./components/BlueButton";
 import { Ionicons } from "@expo/vector-icons";
 import useHomeCountry from "../db/hooks/useHomeCountry";

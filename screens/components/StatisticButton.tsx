@@ -8,8 +8,11 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
+  SafeAreaView,
+  useColorScheme,
+  TouchableWithoutFeedback,
+  ScrollView,
 } from "react-native";
-import { Actionsheet, ScrollView, useColorModeValue } from "native-base";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -86,8 +89,10 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
     }).sort((a, b) => b.value - a.value);
   }, [expenses]);
 
-  const bgColor = useColorModeValue("white", "#1A1A1A");
-  const textColor = useColorModeValue("#333333", "#E5E5E5");
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const bgColor = isDark ? "#1A1A1A" : "white";
+  const textColor = isDark ? "#E5E5E5" : "#333333";
   const accentColor = "#4169E1";
 
   // Handle date picker open and check subscription
@@ -153,74 +158,80 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
 
   return (
     <>
-      <Actionsheet isOpen={isOpen} onClose={onClose} hideDragIndicator>
-        <Actionsheet.Content style={[styles.actionsheetContent, { backgroundColor: bgColor }]}>
-          <View style={styles.header}>
-            <Text style={[styles.headerText, { color: textColor }]}>Expense Statistics</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={textColor} />
-            </TouchableOpacity>
-          </View>
+      <Modal visible={isOpen} animationType="slide" transparent={true} onRequestClose={onClose}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={[styles.bottomSheet, { backgroundColor: bgColor }]}>
+          <SafeAreaView>
+            <View style={styles.dragHandle} />
+            <View style={styles.header}>
+              <Text style={[styles.headerText, { color: textColor }]}>Expense Statistics</Text>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Ionicons name="close" size={24} color={textColor} />
+              </TouchableOpacity>
+            </View>
 
-          <DateRangePicker
-            startDate={dateStart}
-            endDate={dateEnd}
-            onStartDatePress={() => handleDatePickerPress("startDate")}
-            onEndDatePress={() => handleDatePickerPress("endDate")}
-            onEditPress={() => true}
-          />
+            <DateRangePicker
+              startDate={dateStart}
+              endDate={dateEnd}
+              onStartDatePress={() => handleDatePickerPress("startDate")}
+              onEndDatePress={() => handleDatePickerPress("endDate")}
+              onEditPress={() => true}
+            />
 
-          <ScrollView
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={accentColor} />
-                <Text style={[styles.loadingText, { color: textColor }]}>Loading data...</Text>
-              </View>
-            ) : statisticData.length > 0 ? (
-              <ChartContainer
-                title="Expense Distribution"
-                subtitle={formatDateRange()}
-              >
-                <View style={styles.chartWrapper}>
-                  <PieChart
-                    data={statisticData}
-                    donut
-                    showText
-                    textColor={textColor}
-                    radius={120}
-                    textSize={14}
-                    showValuesAsLabels
-                    innerRadius={60}
-                    innerCircleColor={bgColor}
-                    centerLabelComponent={() => (
-                      <View style={styles.centerLabel}>
-                        <Text style={[styles.centerLabelText, { color: textColor }]}>
-                          {statisticData.length}
-                        </Text>
-                        <Text style={[styles.centerLabelSubtext, { color: textColor }]}>
-                          Categories
-                        </Text>
-                      </View>
-                    )}
-                  />
+            <ScrollView
+              contentContainerStyle={styles.scrollViewContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={accentColor} />
+                  <Text style={[styles.loadingText, { color: textColor }]}>Loading data...</Text>
                 </View>
-                <EnhancedLegend data={statisticData} />
-              </ChartContainer>
-            ) : (
-              <View style={styles.noDataContainer}>
-                <Ionicons name="bar-chart-outline" size={60} color={textColor} />
-                <Text style={[styles.noDataText, { color: textColor }]}>No data available</Text>
-                <Text style={[styles.noDataSubtext, { color: textColor }]}>
-                  Try selecting a different date range
-                </Text>
-              </View>
-            )}
-          </ScrollView>
-        </Actionsheet.Content>
-      </Actionsheet>
+              ) : statisticData.length > 0 ? (
+                <ChartContainer
+                  title="Expense Distribution"
+                  subtitle={formatDateRange()}
+                >
+                  <View style={styles.chartWrapper}>
+                    <PieChart
+                      data={statisticData}
+                      donut
+                      showText
+                      textColor={textColor}
+                      radius={120}
+                      textSize={14}
+                      showValuesAsLabels
+                      innerRadius={60}
+                      innerCircleColor={bgColor}
+                      centerLabelComponent={() => (
+                        <View style={styles.centerLabel}>
+                          <Text style={[styles.centerLabelText, { color: textColor }]}>
+                            {statisticData.length}
+                          </Text>
+                          <Text style={[styles.centerLabelSubtext, { color: textColor }]}>
+                            Categories
+                          </Text>
+                        </View>
+                      )}
+                    />
+                  </View>
+                  <EnhancedLegend data={statisticData} />
+                </ChartContainer>
+              ) : (
+                <View style={styles.noDataContainer}>
+                  <Ionicons name="bar-chart-outline" size={60} color={textColor} />
+                  <Text style={[styles.noDataText, { color: textColor }]}>No data available</Text>
+                  <Text style={[styles.noDataSubtext, { color: textColor }]}>
+                    Try selecting a different date range
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </View>
+      </Modal>
 
 
 
@@ -314,11 +325,26 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  actionsheetContent: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingTop: 8,
+    maxHeight: "90%",
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#D0D0D0",
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: 8,
   },
   scrollViewContent: {
     paddingBottom: 24,

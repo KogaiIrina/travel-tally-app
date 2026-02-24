@@ -346,6 +346,16 @@ export async function restoreDb(dump: string) {
         const legacyTripsByCountry = new Map<number, { id: number, home_currency: string, selected_currency: string }>();
         let nextTripId = 1;
 
+        // Find the country of the latest transaction to set its trip as active
+        let latestCountryId = -1;
+        let maxDate = -1;
+        for (const exp of validExpenses) {
+          if (exp.date > maxDate) {
+            maxDate = exp.date;
+            latestCountryId = exp.country_id;
+          }
+        }
+
         for (const expense of validExpenses) {
           if (!legacyTripsByCountry.has(expense.country_id)) {
             // Pick the first seen currency combination for this country's fallback trip
@@ -360,13 +370,14 @@ export async function restoreDb(dump: string) {
             const countryName = countryInfo.length > 0 ? countryInfo[0].country : "Unknown Country";
 
             await db.runAsync(
-              `INSERT INTO trips (id, name, country_id, base_currency, target_currency, is_active) VALUES (?, ?, ?, ?, ?, 0)`,
+              `INSERT INTO trips (id, name, country_id, base_currency, target_currency, is_active) VALUES (?, ?, ?, ?, ?, ?)`,
               [
                 nextTripId,
                 `Trip to ${countryName}`,
                 expense.country_id,
                 expense.home_currency,
-                expense.selected_currency
+                expense.selected_currency,
+                expense.country_id === latestCountryId ? 1 : 0
               ]
             );
 
