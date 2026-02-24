@@ -6,9 +6,10 @@ import {
   Pressable,
   TouchableOpacity,
   Platform,
-  InteractionManager
+  InteractionManager,
+  Modal,
+  View,
 } from "react-native";
-import { Modal, View } from "native-base";
 import ChooseCurrencyButton from "./ChooseCurrencyButton";
 import RNDateTimePicker, {
   DateTimePickerEvent,
@@ -154,30 +155,33 @@ export function NewInputView({
       {/* Date picker for PRO users (iOS) */}
       {Platform.OS === "ios" && hasProAccess && (
         <Modal
-          isOpen={showPicker}
-          onClose={() => setShowPicker(false)}
-          style={styles.pickerModal}
+          visible={showPicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowPicker(false)}
         >
-          <View style={styles.pickerView}>
-            <RNDateTimePicker
-              value={internalPickerDate}
-              mode="date"
-              is24Hour={true}
-              maximumDate={new Date()}
-              display="spinner"
-              style={styles.picker}
-              onChange={(event: DateTimePickerEvent, date?: Date) => {
-                if (date) {
-                  setInternalPickerDate(date);
-                }
-              }}
-            />
-            <TouchableOpacity
-              onPress={handleSetDate}
-              style={styles.setButton}
-            >
-              <Text style={styles.buttonText}>Set</Text>
-            </TouchableOpacity>
+          <View style={styles.modalOverlay}>
+            <View style={styles.pickerView}>
+              <RNDateTimePicker
+                value={internalPickerDate}
+                mode="date"
+                is24Hour={true}
+                maximumDate={new Date()}
+                display="spinner"
+                style={styles.picker}
+                onChange={(event: DateTimePickerEvent, date?: Date) => {
+                  if (date) {
+                    setInternalPickerDate(date);
+                  }
+                }}
+              />
+              <TouchableOpacity
+                onPress={handleSetDate}
+                style={styles.setButton}
+              >
+                <Text style={styles.buttonText}>Set</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Modal>
       )}
@@ -185,33 +189,36 @@ export function NewInputView({
       {/* Date picker for Android */}
       {Platform.OS === "android" && (
         <Modal
-          isOpen={showPicker}
-          onClose={() => setShowPicker(false)}
-          style={styles.pickerModal}
+          visible={showPicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowPicker(false)}
         >
-          <View style={styles.pickerView}>
-            <RNDateTimePicker
-              value={internalPickerDate}
-              mode="date"
-              is24Hour={true}
-              maximumDate={new Date()}
-              display="spinner"
-              style={styles.picker}
-              onChange={(event: DateTimePickerEvent, date?: Date) => {
-                if (date) {
-                  if (event.type === "set") {
-                    setDate(date);
-                    setSelectedDate(date);
-                    setShowPicker(false);
-                  } else {
-                    setInternalPickerDate(date);
+          <View style={styles.modalOverlay}>
+            <View style={styles.pickerView}>
+              <RNDateTimePicker
+                value={internalPickerDate}
+                mode="date"
+                is24Hour={true}
+                maximumDate={new Date()}
+                display="spinner"
+                style={styles.picker}
+                onChange={(event: DateTimePickerEvent, date?: Date) => {
+                  if (date) {
+                    if (event.type === "set") {
+                      setDate(date);
+                      setSelectedDate(date);
+                      setShowPicker(false);
+                    } else {
+                      setInternalPickerDate(date);
+                    }
                   }
-                }
-                if (event.type === "dismissed") {
-                  setShowPicker(false);
-                }
-              }}
-            />
+                  if (event.type === "dismissed") {
+                    setShowPicker(false);
+                  }
+                }}
+              />
+            </View>
           </View>
         </Modal>
       )}
@@ -283,14 +290,18 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "white",
   },
-  pickerModal: {
-    display: "flex",
-    flexDirection: "column",
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   pickerView: {
     backgroundColor: "white",
     alignItems: "center",
     width: "100%",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 16,
   },
   setButton: {
     backgroundColor: "#4169E1",

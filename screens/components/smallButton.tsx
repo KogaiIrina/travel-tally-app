@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 
-export function SmallYellowButton({
+export function SmallPrimaryButton({
   onPress,
   text,
   ...props
@@ -19,11 +19,11 @@ export function SmallYellowButton({
         onPress={onPress}
         style={({ pressed }) =>
           pressed
-            ? [styles.yellowButton, { opacity: 0.7 }]
-            : [styles.yellowButton]
+            ? [styles.primaryButton, { opacity: 0.7 }]
+            : [styles.primaryButton]
         }
       >
-        <Text style={styles.yellowButtonText}>{text}</Text>
+        <Text style={styles.primaryButtonText}>{text}</Text>
       </Pressable>
     </View>
   );
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 15,
   },
-  yellowButton: {
+  primaryButton: {
     backgroundColor: "#4169E1",
     borderRadius: 30,
     width: "100%",
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  yellowButtonText: {
+  primaryButtonText: {
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "700",

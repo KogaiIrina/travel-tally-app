@@ -5,7 +5,7 @@ import useCountries from "../../../db/hooks/useCountries";
 import useHomeCountry, {
   useHomeCountryMutation,
 } from "../../../db/hooks/useHomeCountry";
-import YellowButton from "../YellowButton";
+import YellowButton from "../BlueMediumButton";
 import CustomDropdown from "../CustomDropdown";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

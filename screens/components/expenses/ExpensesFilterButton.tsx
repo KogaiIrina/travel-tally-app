@@ -1,16 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Pressable, Text, View, Dimensions } from "react-native";
-import { Actionsheet, Box, Button, IconButton, useDisclose } from "native-base";
+import { Actionsheet, Box, useDisclose } from "native-base";
 import { useVisitedCountries } from "../../../db/hooks/useCountries";
 import { Ionicons } from "@expo/vector-icons";
 import FilterIcon from "./icons/filter";
 import CalendarIcon from "./icons/calendar";
 import ExpensesCategoryIcon from "./icons/expenses-type";
 import { expensesArray, mergeCategories } from "../../../utils/expensesList";
-import { SmallWhiteButton, SmallYellowButton } from "../smallButton";
+import { SmallWhiteButton, SmallPrimaryButton } from "../smallButton";
 import { UseExpensesFilter } from "../../../db/hooks/useExpenses";
 import useMonths from "../../../db/hooks/useMonths";
-import { BetterPickerSelect } from "../BetterPickerSelect";
 import CustomDropdown from "../CustomDropdown";
 import useCustomCategories from "../../../db/hooks/useCustomCategories";
 
@@ -172,7 +171,7 @@ export default function ExpensesFilterButton({
             </Actionsheet.Item>
           </View>
           <View style={styles.buttonContainer}>
-            <SmallYellowButton onPress={internalOnSave} text="Save" />
+            <SmallPrimaryButton onPress={internalOnSave} text="Save" />
             <SmallWhiteButton onPress={internalOnClose} text="Back" />
           </View>
         </Actionsheet.Content>

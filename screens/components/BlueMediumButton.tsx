@@ -29,18 +29,23 @@ export default function YellowButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#FFB547",
-    borderRadius: 50,
-    width: 270,
-    height: 50,
+    backgroundColor: "#4169E1",
+    borderRadius: 30,
+    width: "100%",
+    minWidth: 150,
+    height: 56,
     justifyContent: "center",
     alignItems: "center",
-    fontWeight: "800",
     alignSelf: "center",
+    shadowColor: "#4169E1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
-    lineHeight: 22,
+    fontWeight: "700",
   },
 });

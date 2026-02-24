@@ -46,9 +46,9 @@ export default function TripsScreen({ onSelectTrip }: TripsScreenProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>My Trips</Text>
+          <Text style={styles.headerTitle}>My Destinations</Text>
           <Pressable onPress={onCreateOpen} style={styles.headerAddButton}>
-            <Text style={styles.headerAddText}>Create Trip</Text>
+            <Text style={styles.headerAddText}>Add Destination</Text>
           </Pressable>
         </View>
       </View>
@@ -88,10 +88,10 @@ export default function TripsScreen({ onSelectTrip }: TripsScreenProps) {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="airplane-outline" size={80} color="#CCC" style={{ marginBottom: 20 }} />
-            <Text style={styles.emptyTitle}>No Trips Yet</Text>
+            <Text style={styles.emptyTitle}>No Destinations Yet</Text>
             <Text style={styles.emptyText}>Create your first trip to start organizing your travel expenses.</Text>
             <Pressable style={styles.emptyCreateButton} onPress={onCreateOpen}>
-              <Text style={styles.emptyCreateButtonText}>+ Create New Trip</Text>
+              <Text style={styles.emptyCreateButtonText}>+ Add New Destination</Text>
             </Pressable>
           </View>
         }

@@ -88,7 +88,7 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
 
   const bgColor = useColorModeValue("white", "#1A1A1A");
   const textColor = useColorModeValue("#333333", "#E5E5E5");
-  const accentColor = "#FFB547";
+  const accentColor = "#4169E1";
 
   // Handle date picker open and check subscription
   const handleDatePickerPress = (pickerType: "startDate" | "endDate") => {

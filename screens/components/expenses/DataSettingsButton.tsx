@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   Platform,
   View,
   Text,
+  ActivityIndicator,
 } from "react-native";
 import useExpenses from "../../../db/hooks/useExpenses";
 import SettingsIcon from "./icons/settings";
@@ -16,11 +17,15 @@ import { Actionsheet, Box, Button, useDisclose } from "native-base";
 import HomeCurrencyButton from "../input/HomeCurrencyButton";
 import useHomeCountry from "../../../db/hooks/useHomeCountry";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRevenueCat } from "../../../utils/RevenueCatProvider";
+import { updateSubscriptionCache, triggerGlobalSubscriptionRefresh } from "../../../utils/useSubscriptionStatus";
 
 export default function DataSettingsButton() {
   const queryClient = useQueryClient();
   const { data: expenses, isLoading } = useExpenses({});
   const { data: homeCountry } = useHomeCountry();
+  const { restorePermissions } = useRevenueCat() || {};
+  const [isRestoring, setIsRestoring] = useState(false);
 
   function exportData() {
     if (!expenses) {
@@ -82,6 +87,30 @@ export default function DataSettingsButton() {
       });
   }
 
+  const handleRestorePurchases = async () => {
+    if (!restorePermissions) return;
+    setIsRestoring(true);
+    try {
+      const customerInfo = await restorePermissions();
+      console.log("RESTORED CUSTOMER INFO:", JSON.stringify(customerInfo, null, 2));
+
+      if (
+        Object.keys(customerInfo.entitlements.active).length > 0 ||
+        customerInfo.activeSubscriptions.length > 0
+      ) {
+        updateSubscriptionCache(true);
+        triggerGlobalSubscriptionRefresh();
+        Alert.alert("Success", "Your purchases have been successfully restored.");
+      } else {
+        Alert.alert("No Purchases Found", "We couldn't find any active subscriptions to restore.");
+      }
+    } catch (error: any) {
+      Alert.alert("Restore Failed", error.message || "An error occurred while restoring purchases.");
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   const { isOpen, onOpen, onClose } = useDisclose();
 
   const onButtonPress = () => {
@@ -122,6 +151,19 @@ export default function DataSettingsButton() {
                 <Button style={styles.exportImportButton} onPress={importData}>
                   <Text style={styles.text}>Import Data</Text>
                 </Button>
+                {Platform.OS === 'ios' && (
+                  <Button
+                    style={styles.exportImportButton}
+                    onPress={handleRestorePurchases}
+                    disabled={isRestoring}
+                  >
+                    {isRestoring ? (
+                      <ActivityIndicator color="#1A1A1A" />
+                    ) : (
+                      <Text style={styles.text}>Restore Purchases</Text>
+                    )}
+                  </Button>
+                )}
                 {!homeCountry && <HomeCurrencyButton />}
               </View>
             </Actionsheet.Item>
@@ -145,7 +187,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   selectorsBox: {
-    height: 200,
+    height: 280,
     width: "100%",
   },
   button: {

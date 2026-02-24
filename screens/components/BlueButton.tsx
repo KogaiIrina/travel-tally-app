@@ -24,6 +24,8 @@ import useHomeCountry from "../../db/hooks/useHomeCountry";
 import { useSetting } from "../../utils/settings";
 import { useActiveTrip } from "../../db/hooks/useTrips";
 import useExchangeRate from "../../db/hooks/useExchangeRate";
+import useSubscriptionStatus from "../../utils/useSubscriptionStatus";
+import { presentPaywall } from "../../utils/presentPaywall";
 
 interface BlueButtonProps {
   hideUI?: boolean;
@@ -64,6 +66,17 @@ const ExpenseForm = memo(({
     />
   ), [sum, handleAmountChange, handleAmountOfSpendingChange, setDate]);
 
+  // Handle paywall for comments
+  const { hasActiveSubscription } = useSubscriptionStatus();
+  const hasProAccess = Platform.OS === 'android' || hasActiveSubscription;
+
+  const handleCommentFocus = () => {
+    if (!hasProAccess) {
+      Keyboard.dismiss();
+      presentPaywall();
+    }
+  };
+
   // Form resets are handled explicitly in the parent BlueButton's onOpen handler.
 
   return (
@@ -75,20 +88,30 @@ const ExpenseForm = memo(({
             <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8 }}>OPTIONAL COMMENT</Text>
             <Text style={{ fontSize: 12, color: '#999' }}>{comment.length}/45</Text>
           </View>
-          <TextInput
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 12,
-              padding: 12,
-              fontSize: 16,
-              color: '#1A1A1A',
-            }}
-            placeholder="Add a comment..."
-            placeholderTextColor="#999"
-            value={comment}
-            onChangeText={setComment}
-            maxLength={45}
-          />
+          <Pressable
+            onPress={handleCommentFocus}
+            style={{ width: '100%' }}
+          >
+            <View pointerEvents={hasProAccess ? "auto" : "none"}>
+              <TextInput
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 16,
+                  color: '#1A1A1A',
+                  opacity: hasProAccess ? 1 : 0.7,
+                  textAlign: 'center',
+                }}
+                placeholder={hasProAccess ? "Add a note..." : "Add a note (PRO)"}
+                placeholderTextColor="#999"
+                value={comment}
+                onChangeText={setComment}
+                maxLength={45}
+                editable={hasProAccess}
+              />
+            </View>
+          </Pressable>
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8, marginBottom: 12 }}>CATEGORY</Text>

@@ -47,7 +47,7 @@ export default function TabBar({ activeTab, onTabChange }: TabBarProps) {
               activeTab === 'trips' && styles.activeTabText,
             ]}
           >
-            Trips
+            Destinations
           </Text>
         </Pressable>
 
