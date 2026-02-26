@@ -23,6 +23,10 @@ export const useSubscriptionStatus = () => {
     }, []);
 
     useEffect(() => {
+      return registerRefreshCallback(forceRefresh);
+    }, [forceRefresh]);
+
+    useEffect(() => {
       const checkStatus = async () => {
         try {
           // First, use the user.pro from context which is immediately available
