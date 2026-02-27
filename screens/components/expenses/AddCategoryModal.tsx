@@ -8,18 +8,20 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Dimensions,
 } from "react-native";
+
+const MODAL_HEIGHT = Dimensions.get("window").height * 0.82;
 import { Ionicons } from "@expo/vector-icons";
 import { useAddCustomCategory } from "../../../db/hooks/useCustomCategories";
-import BigBlueButton from "../BigBlueButton";
 import * as Icons from "./icons";
 
 // Predefined colors that match the app's design
 const COLORS = [
-  "#A57865", "#FDC0A1", "#BB2649", "#6667AA", "#F7E00E", 
-  "#154A7D", "#F36F62", "#6E5B98", "#85AF48", "#91A6D0", 
+  "#A57865", "#FDC0A1", "#BB2649", "#6667AA", "#F7E00E",
+  "#154A7D", "#F36F62", "#6E5B98", "#85AF48", "#91A6D0",
   "#F6CAC9", "#964F4D", "#B564A5", "#039775", "#686868",
-  "#D94124","#E66385", "#179A9D", 
+  "#D94124", "#E66385", "#179A9D",
 ];
 
 // Available icons with their components
@@ -78,7 +80,6 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ visible, onClose })
       return;
     }
 
-    // Create a unique key from the category name
     const key = categoryName.toLowerCase().replace(/\s+/g, "_");
 
     addCustomCategory(
@@ -90,7 +91,6 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ visible, onClose })
       },
       {
         onSuccess: () => {
-          // Reset form and close modal
           setCategoryName("");
           setSelectedColor(COLORS[0]);
           setSelectedIcon(ICONS[0].name);
@@ -104,6 +104,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ visible, onClose })
     );
   };
 
+  const isActive = !!categoryName.trim();
+
   return (
     <Modal
       animationType="slide"
@@ -113,27 +115,33 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ visible, onClose })
     >
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
+          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerText}>Add New Category</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#494EBF" />
+              <Ionicons name="close" size={16} color="#666" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollView}>
+          {/* Scrollable content */}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Category Name</Text>
+              <Text style={styles.label}>CATEGORY NAME</Text>
               <TextInput
                 style={styles.input}
                 value={categoryName}
                 onChangeText={setCategoryName}
                 placeholder="Enter category name"
-                placeholderTextColor="#999"
+                placeholderTextColor="#AAAAAA"
               />
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Select Color</Text>
+              <Text style={styles.label}>SELECT COLOR</Text>
               <View style={styles.colorGrid}>
                 {COLORS.map((color) => (
                   <TouchableOpacity
@@ -141,7 +149,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ visible, onClose })
                     style={[
                       styles.colorItem,
                       { backgroundColor: color },
-                      selectedColor === color && styles.selectedItem,
+                      selectedColor === color && styles.selectedColorItem,
                     ]}
                     onPress={() => setSelectedColor(color)}
                   />
@@ -150,7 +158,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ visible, onClose })
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Select Icon</Text>
+              <Text style={styles.label}>SELECT ICON</Text>
               <View style={styles.iconGrid}>
                 {ICONS.map((icon) => (
                   <TouchableOpacity
@@ -170,12 +178,17 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ visible, onClose })
             </View>
           </ScrollView>
 
+          {/* Footer button */}
           <View style={styles.footer}>
-            <BigBlueButton
+            <TouchableOpacity
+              style={[styles.saveButton, isActive ? styles.saveButtonActive : styles.saveButtonInactive]}
               onPress={handleSave}
-              isActive={!!categoryName.trim()}
-              text="SAVE CATEGORY"
-            />
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.saveButtonText, !isActive && styles.saveButtonTextInactive]}>
+                Save Category
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -192,97 +205,133 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: "90%",
-    maxHeight: "80%",
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    paddingBottom: 0,
+    height: MODAL_HEIGHT,
+    backgroundColor: "#F7F8FA",
+    borderRadius: 24,
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 15,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
   },
   headerText: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#494EBF",
+    fontWeight: "700",
+    color: "#1A1A1A",
   },
   closeButton: {
-    padding: 5,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#E8E8ED",
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollView: {
-    maxHeight: "70%",
-    marginBottom: 10,
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 8,
   },
   formGroup: {
-    marginBottom: 10,
+    marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "600",
-    marginBottom: 10,
-    color: "#333",
+    color: "#AAAAAA",
+    letterSpacing: 1,
+    marginBottom: 12,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
+    color: "#1A1A1A",
   },
   colorGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   colorItem: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    margin: 5,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  selectedColorItem: {
+    borderWidth: 3,
+    borderColor: "#2C65E1",
+    shadowColor: "#2C65E1",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   iconGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   iconItem: {
-    width: "16%",
-    padding: 5,
-    margin: 5,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: 12,
+    padding: 4,
+    marginRight: 6,
+    marginBottom: 6,
   },
   iconWrapper: {
-    width: 45,
-    height: 45,
+    width: 48,
+    height: 48,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#494EBF",
-    borderRadius: 22.5,
+    backgroundColor: "#2C65E1",
+    borderRadius: 24,
     overflow: "hidden",
   },
-  selectedItem: {
-    borderWidth: 3,
-    borderColor: "#2C65E1",
-  },
   selectedIconItem: {
-    backgroundColor: "rgba(44, 101, 225, 0.2)",
+    backgroundColor: "rgba(44, 101, 225, 0.15)",
+    borderRadius: 16,
   },
   footer: {
-    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
+    backgroundColor: "#F7F8FA",
+  },
+  saveButton: {
+    height: 52,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  saveButtonActive: {
+    backgroundColor: "#2C65E1",
+  },
+  saveButtonInactive: {
+    backgroundColor: "#E0E4F0",
+  },
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  saveButtonTextInactive: {
+    color: "#9AAACA",
   },
 });
 
-export default AddCategoryModal; 
+export default AddCategoryModal;

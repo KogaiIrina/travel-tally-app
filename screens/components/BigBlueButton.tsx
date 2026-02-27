@@ -24,9 +24,9 @@ export default function BigBlueButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#4169E1",
+    backgroundColor: "#2C65E1",
     borderRadius: 16,
-    width: 340,
+    width: "100%",
     height: 56,
     justifyContent: "center",
     alignItems: "center",
