@@ -2,7 +2,7 @@
   "expo": {
     "name": "TravelTally",
     "slug": "nomad-money-counter",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "jsEngine": "hermes",
@@ -17,10 +17,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ikogai.traveltally",
-      "buildNumber": "2"
+      "buildNumber": "1"
     },
     "android": {
-      "versionCode": 17,
+      "versionCode": 18,
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
