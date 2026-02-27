@@ -15,7 +15,9 @@ interface Expense {
   selected_currency: string;
   country_id: number;
   expense_types: string;
+  comment?: string;
   date: number;
+  trip_id?: number | null;
 }
 
 interface CustomCategory {
@@ -26,9 +28,21 @@ interface CustomCategory {
   icon: string;
 }
 
+export interface ExportTrip {
+  id: number;
+  name: string;
+  country_id: number;
+  base_currency: string;
+  target_currency: string;
+  start_date?: number | null;
+  end_date?: number | null;
+  is_active: boolean | number;
+}
+
 interface ExportData {
   expenses: Expense[];
   customCategories: CustomCategory[];
+  trips?: ExportTrip[];
 }
 
 export function createExpenseTable() {
@@ -42,6 +56,7 @@ export function createExpenseTable() {
         selected_currency TEXT,
         country_id INTEGER REFERENCES countries(id),
         expense_types TEXT,
+        comment TEXT DEFAULT NULL,
         date DATETIME
       )`
     );
@@ -53,19 +68,21 @@ export function dumpDb(): Promise<string> {
     // Use getAllAsync directly for both queries
     Promise.all([
       db.getAllAsync<Expense>('SELECT * FROM expenses'),
-      db.getAllAsync<CustomCategory>('SELECT key, text, color, icon FROM custom_categories')
+      db.getAllAsync<CustomCategory>('SELECT key, text, color, icon FROM custom_categories'),
+      db.getAllAsync<ExportTrip>('SELECT * FROM trips')
     ])
-    .then(([expenses, customCategories]) => {
-      const exportData: ExportData = {
-        expenses,
-        customCategories,
-      };
-      resolve(JSON.stringify(exportData, null, 2));
-    })
-    .catch(error => {
-      console.error("Error dumping database:", error);
-      reject(error);
-    });
+      .then(([expenses, customCategories, trips]) => {
+        const exportData: ExportData = {
+          expenses,
+          customCategories,
+          trips
+        };
+        resolve(JSON.stringify(exportData, null, 2));
+      })
+      .catch(error => {
+        console.error("Error dumping database:", error);
+        reject(error);
+      });
   });
 }
 
@@ -74,31 +91,39 @@ function verifyDatabase(): Promise<void> {
   return new Promise((resolve, reject) => {
     Promise.all([
       db.getAllAsync<{ count: number }>('SELECT COUNT(*) as count FROM expenses'),
-      db.getAllAsync<{ count: number }>('SELECT COUNT(*) as count FROM custom_categories')
+      db.getAllAsync<{ count: number }>('SELECT COUNT(*) as count FROM custom_categories'),
+      db.getAllAsync<{ count: number }>('SELECT COUNT(*) as count FROM trips')
     ])
-    .then(([expensesCount, categoriesCount]) => {
-      const expenseCount = expensesCount[0]?.count || 0;
-      const categoryCount = categoriesCount[0]?.count || 0;
-      console.log(`Database verification: Found ${expenseCount} expenses and ${categoryCount} custom categories`);
-      resolve();
-    })
-    .catch(error => {
-      console.error("Error verifying database:", error);
-      reject(error);
-    });
+      .then(([expensesCount, categoriesCount, tripsCount]) => {
+        const expenseCount = expensesCount[0]?.count || 0;
+        const categoryCount = categoriesCount[0]?.count || 0;
+        const tripCount = tripsCount[0]?.count || 0;
+        console.log(`Database verification: Found ${expenseCount} expenses, ${categoryCount} custom categories, and ${tripCount} trips`);
+        resolve();
+      })
+      .catch(error => {
+        console.error("Error verifying database:", error);
+        reject(error);
+      });
   });
 }
 
 // Function to check if the imported data has the correct structure
 function validateImportData(data: any): ExportData {
   console.log("Validating import data structure...");
-  
+
   // Check if data is an object
   if (!data || typeof data !== 'object') {
     console.error("Invalid data format: not an object");
     throw new Error("Invalid data format: not an object");
   }
-  
+
+  // Check if trips property exists and is an array
+  if (!Array.isArray(data.trips)) {
+    console.warn("Invalid or missing trips array, using empty array");
+    data.trips = [];
+  }
+
   // Handle old format (array of expenses only)
   if (Array.isArray(data)) {
     console.log("Detected old format (array of expenses only)");
@@ -108,22 +133,23 @@ function validateImportData(data: any): ExportData {
         // Ensure expense_types is valid
         expense_types: expense.expense_types || "other"
       })),
-      customCategories: []
+      customCategories: [],
+      trips: []
     };
   }
-  
+
   // Check if expenses property exists and is an array
   if (!Array.isArray(data.expenses)) {
     console.warn("Invalid or missing expenses array, using empty array");
     data.expenses = [];
   }
-  
+
   // Check if customCategories property exists and is an array
   if (!Array.isArray(data.customCategories)) {
     console.warn("Invalid or missing customCategories array, using empty array");
     data.customCategories = [];
   }
-  
+
   // Validate each expense object
   data.expenses = data.expenses.map((expense: any, index: number) => {
     // Ensure all required fields exist
@@ -131,65 +157,93 @@ function validateImportData(data: any): ExportData {
       console.warn(`Expense ${index} has invalid amount, setting to 0`);
       expense.amount = 0;
     }
-    
+
     if (typeof expense.amount_in_home_currency !== 'number') {
       console.warn(`Expense ${index} has invalid amount_in_home_currency, setting to 0`);
       expense.amount_in_home_currency = 0;
     }
-    
+
     if (!expense.home_currency) {
       console.warn(`Expense ${index} has invalid home_currency, setting to USD`);
       expense.home_currency = 'USD';
     }
-    
+
     if (!expense.selected_currency) {
       console.warn(`Expense ${index} has invalid selected_currency, setting to USD`);
       expense.selected_currency = 'USD';
     }
-    
+
     if (typeof expense.country_id !== 'number') {
       console.warn(`Expense ${index} has invalid country_id, setting to 1`);
       expense.country_id = 1;
     }
-    
+
     if (!expense.expense_types) {
       console.warn(`Expense ${index} has invalid expense_types, setting to other`);
       expense.expense_types = 'other';
     }
-    
+
     if (typeof expense.date !== 'number' && typeof expense.date !== 'string') {
       console.warn(`Expense ${index} has invalid date, setting to current time`);
       expense.date = Math.floor(Date.now() / 1000);
     }
-    
+
+    if (expense.trip_id !== undefined && expense.trip_id !== null && typeof expense.trip_id !== 'number') {
+      console.warn(`Expense ${index} has invalid trip_id, setting to null`);
+      expense.trip_id = null;
+    }
+
     return expense;
   });
-  
+
   // Validate each custom category object
   data.customCategories = data.customCategories.map((category: any, index: number) => {
     if (!category.key) {
       console.warn(`Category ${index} has invalid key, generating a new one`);
       category.key = `custom_${index}_${Date.now()}`;
     }
-    
+
     if (!category.text) {
       console.warn(`Category ${index} has invalid text, using key as text`);
       category.text = category.key;
     }
-    
+
     if (!category.color) {
       console.warn(`Category ${index} has invalid color, setting to default`);
       category.color = '#8b7c93';
     }
-    
+
     if (!category.icon) {
       console.warn(`Category ${index} has invalid icon, setting to other`);
       category.icon = 'other';
     }
-    
+
     return category;
   });
-  
+
+  // Validate each trip object
+  data.trips = data.trips.map((trip: any, index: number) => {
+    if (typeof trip.id !== 'number') {
+      console.warn(`Trip ${index} missing valid ID, generating a temporary one`);
+      trip.id = index + 1; // It's critical trips have valid IDs as expenses refer to them
+    }
+    if (!trip.name) {
+      console.warn(`Trip ${index} missing name, setting default`);
+      trip.name = `Imported Trip ${index + 1}`;
+    }
+    if (typeof trip.country_id !== 'number') {
+      console.warn(`Trip ${index} missing country_id, setting to default`);
+      trip.country_id = 1;
+    }
+    if (!trip.base_currency) {
+      trip.base_currency = 'USD';
+    }
+    if (!trip.target_currency) {
+      trip.target_currency = 'USD';
+    }
+    return trip;
+  });
+
   console.log("Data validation complete");
   return data as ExportData;
 }
@@ -199,30 +253,31 @@ export async function restoreDb(dump: string) {
     // Parse and validate the imported data
     const rawData = JSON.parse(dump);
     const data = validateImportData(rawData);
-    
+
     const expenses = data.expenses || [];
     const customCategories = data.customCategories || [];
+    const trips = data.trips || [];
 
-    console.log(`Importing ${expenses.length} expenses and ${customCategories.length} custom categories`);
-    
+    console.log(`Importing ${expenses.length} expenses, ${customCategories.length} custom categories, and ${trips.length} trips`);
+
     // First, process custom categories to ensure they're available for expense validation
     const customCategoryKeys = new Set(customCategories.map(cat => cat.key));
-    
+
     // Check for any potential issues with the data
     const validExpenses = expenses.filter(expense => {
       if (!expense.expense_types) {
         console.warn("Found expense with missing expense_types, will be set to 'other'");
         expense.expense_types = "other";
       }
-      
+
       // Log if expense type is not in default list or custom categories
-      if (!customCategoryKeys.has(expense.expense_types) && 
-          !["rent", "flights", "food", "groceries", "cafe", "taxi", "entertainment", 
-            "metro", "souvenir", "insurance", "clothes", "electronics", "health", 
-            "beauty", "savings", "other"].includes(expense.expense_types)) {
+      if (!customCategoryKeys.has(expense.expense_types) &&
+        !["rent", "flights", "food", "groceries", "cafe", "taxi", "entertainment",
+          "metro", "souvenir", "insurance", "clothes", "electronics", "health",
+          "beauty", "savings", "other"].includes(expense.expense_types)) {
         console.warn(`Expense has non-standard type: ${expense.expense_types}`);
       }
-      
+
       return true; // Keep all expenses, we'll handle unknown types gracefully
     });
 
@@ -231,11 +286,12 @@ export async function restoreDb(dump: string) {
     try {
       // Begin transaction
       await db.runAsync('BEGIN TRANSACTION');
-      
+
       // Clear existing data
       await db.runAsync('DELETE FROM expenses');
       await db.runAsync('DELETE FROM custom_categories');
-      
+      await db.runAsync('DELETE FROM trips');
+
       // Import custom categories first
       if (customCategories.length > 0) {
         console.log(`Importing ${customCategories.length} custom categories...`);
@@ -244,7 +300,7 @@ export async function restoreDb(dump: string) {
           if (i % 10 === 0 || i === customCategories.length - 1) {
             console.log(`Importing category ${i + 1}/${customCategories.length}: ${category.key}`);
           }
-          
+
           await db.runAsync(
             `INSERT INTO custom_categories (key, text, color, icon) VALUES (?, ?, ?, ?)`,
             [
@@ -258,7 +314,81 @@ export async function restoreDb(dump: string) {
       } else {
         console.log("No custom categories to import");
       }
-      
+
+      // Import trips
+      if (trips.length > 0) {
+        console.log(`Importing ${trips.length} trips...`);
+        for (let i = 0; i < trips.length; i++) {
+          const trip = trips[i];
+          if (i % 5 === 0 || i === trips.length - 1) {
+            console.log(`Importing trip ${i + 1}/${trips.length}: ${trip.name}`);
+          }
+
+          // We explicitly INSERT the id to maintain relations
+          await db.runAsync(
+            `INSERT INTO trips (id, name, country_id, base_currency, target_currency, start_date, end_date, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              trip.id,
+              trip.name,
+              trip.country_id,
+              trip.base_currency,
+              trip.target_currency,
+              trip.start_date || null,
+              trip.end_date || null,
+              trip.is_active ? 1 : 0
+            ]
+          );
+        }
+      } else {
+        console.log("No explicit trips to import, generating legacy trips...");
+
+        // Emulate legacy app behavior: Group expenses tightly by country_id
+        const legacyTripsByCountry = new Map<number, { id: number, home_currency: string, selected_currency: string }>();
+        let nextTripId = 1;
+
+        // Find the country of the latest transaction to set its trip as active
+        let latestCountryId = -1;
+        let maxDate = -1;
+        for (const exp of validExpenses) {
+          if (exp.date > maxDate) {
+            maxDate = exp.date;
+            latestCountryId = exp.country_id;
+          }
+        }
+
+        for (const expense of validExpenses) {
+          if (!legacyTripsByCountry.has(expense.country_id)) {
+            // Pick the first seen currency combination for this country's fallback trip
+            legacyTripsByCountry.set(expense.country_id, {
+              id: nextTripId,
+              home_currency: expense.home_currency,
+              selected_currency: expense.selected_currency,
+            });
+
+            // Attempt to get country name for the fallback title
+            const countryInfo = await db.getAllAsync<{ country: string }>("SELECT country FROM countries WHERE id = ?", [expense.country_id]);
+            const countryName = countryInfo.length > 0 ? countryInfo[0].country : "Unknown Country";
+
+            await db.runAsync(
+              `INSERT INTO trips (id, name, country_id, base_currency, target_currency, is_active) VALUES (?, ?, ?, ?, ?, ?)`,
+              [
+                nextTripId,
+                `Trip to ${countryName}`,
+                expense.country_id,
+                expense.home_currency,
+                expense.selected_currency,
+                expense.country_id === latestCountryId ? 1 : 0
+              ]
+            );
+
+            nextTripId++;
+          }
+
+          // Force assignment
+          expense.trip_id = legacyTripsByCountry.get(expense.country_id)!.id;
+        }
+      }
+
       // Import expenses
       if (validExpenses.length > 0) {
         console.log(`Importing ${validExpenses.length} expenses...`);
@@ -268,9 +398,9 @@ export async function restoreDb(dump: string) {
           if (i % 10 === 0 || i === validExpenses.length - 1) {
             console.log(`Importing expense ${i + 1}/${validExpenses.length}: ${expense.expense_types}`);
           }
-          
+
           await db.runAsync(
-            `INSERT INTO expenses (amount, amount_in_home_currency, home_currency, selected_currency, country_id, expense_types, date) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO expenses (amount, amount_in_home_currency, home_currency, selected_currency, country_id, expense_types, date, trip_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               expense.amount,
               expense.amount_in_home_currency,
@@ -279,17 +409,18 @@ export async function restoreDb(dump: string) {
               expense.country_id,
               expense.expense_types,
               expense.date,
+              expense.trip_id || null, // preserve missing/null trip associations
             ]
           );
         }
       } else {
         console.log("No expenses to import");
       }
-      
+
       // Commit transaction
       await db.runAsync('COMMIT');
       console.log("Import completed successfully");
-      
+
       // Verify the database after import
       await verifyDatabase();
     } catch (error) {

@@ -146,7 +146,9 @@ export const checkSubscriptionStatus = async () => {
   try {
     const customerInfo = await Purchases.getCustomerInfo();
     return {
-      hasSubscription: customerInfo.activeSubscriptions.length > 0,
+      hasSubscription:
+        customerInfo.activeSubscriptions.length > 0 ||
+        Object.keys(customerInfo.entitlements.active).length > 0,
       activeSubscription:
         customerInfo.activeSubscriptions.length > 0
           ? customerInfo.activeSubscriptions[0]

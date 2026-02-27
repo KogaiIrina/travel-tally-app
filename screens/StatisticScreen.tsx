@@ -9,22 +9,20 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
-  useColorScheme,
-  TouchableWithoutFeedback,
   ScrollView,
+  useColorScheme,
 } from "react-native";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { PieChart } from "react-native-gifted-charts";
-import { useGroupedExpenses } from "../../db/hooks/useExpenses";
-import { globalMergedExpensesList } from "../../utils/expensesList";
-import ChartContainer from "./ChartContainer";
-import EnhancedLegend from "./EnhancedLegend";
-import DateRangePicker from "./DateRangePicker";
+import { useGroupedExpenses } from "../db/hooks/useExpenses";
+import { globalMergedExpensesList } from "../utils/expensesList";
+import EnhancedLegend from "./components/EnhancedLegend";
+import DateRangePicker from "./components/DateRangePicker";
 import { Ionicons } from "@expo/vector-icons";
-import useSubscriptionStatus from "../../utils/useSubscriptionStatus";
-import { presentPaywall } from "../../utils/presentPaywall";
+import useSubscriptionStatus from "../utils/useSubscriptionStatus";
+import { presentPaywall } from "../utils/presentPaywall";
 
 // Get the date from one week ago
 const getOneWeekAgo = () => {
@@ -33,17 +31,7 @@ const getOneWeekAgo = () => {
   return date;
 };
 
-interface StatisticButtonProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  tripId?: number;
-}
-
-const StatisticButton: React.FC<StatisticButtonProps> = ({
-  isOpen = false,
-  onClose = () => { },
-  tripId,
-}) => {
+export default function StatisticScreen() {
   const [dateStart, setDateStart] = useState(getOneWeekAgo());
   const [dateEnd, setDateEnd] = useState(new Date());
   const [showPicker, setShowPicker] = useState<
@@ -56,7 +44,6 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
   } = useGroupedExpenses({
     dateStart,
     dateEnd,
-    tripId,
   });
   const [tempDate, setTempDate] = useState(new Date());
   const { hasActiveSubscription } = useSubscriptionStatus();
@@ -69,7 +56,6 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
     }
     return expenses.map((expense) => {
       if (!(expense.expense_types in globalMergedExpensesList)) {
-        console.warn(`Warning: unexpected expense type: ${expense.expense_types}`);
         return {
           value: expense.total_home_currency_amount,
           text: `${Math.round(expense.percentage)}%`,
@@ -89,21 +75,16 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
     }).sort((a, b) => b.value - a.value);
   }, [expenses]);
 
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const bgColor = isDark ? "#1A1A1A" : "white";
-  const textColor = isDark ? "#E5E5E5" : "#333333";
+  const bgColor = "#F7F8FA";
+  const textColor = "#1A1A1A";
   const accentColor = "#4169E1";
 
-  // Handle date picker open and check subscription
+  // Handle date picker open
   const handleDatePickerPress = (pickerType: "startDate" | "endDate") => {
-    if (hasActiveSubscription) {
-      setTempDate(pickerType === "startDate" ? dateStart : dateEnd);
-      setShowPicker(pickerType);
-    } else {
-      presentPaywall();
-    }
+    setTempDate(pickerType === "startDate" ? dateStart : dateEnd);
+    setShowPicker(pickerType);
   };
+
 
 
   const handleDateChange = (
@@ -119,7 +100,6 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
           setDateEnd(selectedDate);
           setShowPicker("none");
         }
-        refetch();
       } else if (event.type === "dismissed") {
         setShowPicker("none");
       }
@@ -138,7 +118,6 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
       setDateEnd(tempDate);
       setShowPicker("none");
     }
-    refetch();
   };
 
   const formatDateRange = () => {
@@ -157,81 +136,70 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
   };
 
   return (
-    <>
-      <Modal visible={isOpen} animationType="slide" transparent={true} onRequestClose={onClose}>
-        <TouchableWithoutFeedback onPress={onClose}>
-          <View style={styles.modalOverlay} />
-        </TouchableWithoutFeedback>
-        <View style={[styles.bottomSheet, { backgroundColor: bgColor }]}>
-          <SafeAreaView>
-            <View style={styles.dragHandle} />
-            <View style={styles.header}>
-              <Text style={[styles.headerText, { color: textColor }]}>Expense Statistics</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Ionicons name="close" size={24} color={textColor} />
-              </TouchableOpacity>
-            </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+      <View style={styles.header}>
+        <Text style={[styles.headerText, { color: textColor }]}>Global Statistics</Text>
+      </View>
 
-            <DateRangePicker
-              startDate={dateStart}
-              endDate={dateEnd}
-              onStartDatePress={() => handleDatePickerPress("startDate")}
-              onEndDatePress={() => handleDatePickerPress("endDate")}
-              onEditPress={() => true}
-            />
+      <DateRangePicker
+        startDate={dateStart}
+        endDate={dateEnd}
+        onStartDatePress={() => handleDatePickerPress("startDate")}
+        onEndDatePress={() => handleDatePickerPress("endDate")}
+        onEditPress={() => {
+          if (!hasActiveSubscription) {
+            presentPaywall();
+            return false;
+          }
+          return true;
+        }}
+      />
 
-            <ScrollView
-              contentContainerStyle={styles.scrollViewContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={accentColor} />
-                  <Text style={[styles.loadingText, { color: textColor }]}>Loading data...</Text>
-                </View>
-              ) : statisticData.length > 0 ? (
-                <ChartContainer
-                  title="Expense Distribution"
-                  subtitle={formatDateRange()}
-                >
-                  <View style={styles.chartWrapper}>
-                    <PieChart
-                      data={statisticData}
-                      donut
-                      showText
-                      textColor={textColor}
-                      radius={120}
-                      textSize={14}
-                      showValuesAsLabels
-                      innerRadius={60}
-                      innerCircleColor={bgColor}
-                      centerLabelComponent={() => (
-                        <View style={styles.centerLabel}>
-                          <Text style={[styles.centerLabelText, { color: textColor }]}>
-                            {statisticData.length}
-                          </Text>
-                          <Text style={[styles.centerLabelSubtext, { color: textColor }]}>
-                            Categories
-                          </Text>
-                        </View>
-                      )}
-                    />
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={accentColor} />
+            <Text style={[styles.loadingText, { color: textColor }]}>Loading data...</Text>
+          </View>
+        ) : statisticData.length > 0 ? (
+          <View style={styles.chartSection}>
+            <View style={styles.chartWrapper}>
+              <PieChart
+                data={statisticData}
+                donut
+                textColor={textColor}
+                radius={130}
+                innerRadius={75}
+                innerCircleColor={bgColor}
+                centerLabelComponent={() => (
+                  <View style={styles.centerLabel}>
+                    <Text style={[styles.centerLabelText, { color: textColor }]}>
+                      {statisticData.length}
+                    </Text>
+                    <Text style={[styles.centerLabelSubtext, { color: textColor }]}>
+                      Categories
+                    </Text>
                   </View>
-                  <EnhancedLegend data={statisticData} />
-                </ChartContainer>
-              ) : (
-                <View style={styles.noDataContainer}>
-                  <Ionicons name="bar-chart-outline" size={60} color={textColor} />
-                  <Text style={[styles.noDataText, { color: textColor }]}>No data available</Text>
-                  <Text style={[styles.noDataSubtext, { color: textColor }]}>
-                    Try selecting a different date range
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
-          </SafeAreaView>
-        </View>
-      </Modal>
+                )}
+              />
+            </View>
+            <View style={styles.legendWrapper}>
+              <EnhancedLegend data={statisticData} />
+            </View>
+          </View>
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Ionicons name="bar-chart-outline" size={60} color={textColor} />
+            <Text style={[styles.noDataText, { color: textColor }]}>No expenses recorded</Text>
+            <Text style={[styles.noDataSubtext, { color: textColor }]}>
+              Try selecting a different date range
+            </Text>
+          </View>
+        )}
+      </ScrollView>
 
 
 
@@ -318,55 +286,45 @@ const StatisticButton: React.FC<StatisticButtonProps> = ({
           )}
         </>
       )}
-    </>
+    </SafeAreaView>
   );
-};
+}
 
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  container: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  bottomSheet: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 8,
-    maxHeight: "90%",
-  },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    backgroundColor: "#D0D0D0",
-    borderRadius: 3,
-    alignSelf: "center",
-    marginBottom: 8,
+    backgroundColor: "#F7F8FA",
   },
   scrollViewContent: {
     paddingBottom: 24,
+    paddingHorizontal: 16,
   },
   header: {
-    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
     alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 16,
-    marginBottom: 16,
   },
   headerText: {
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 24,
+    fontWeight: "700",
   },
-  closeButton: {
-    padding: 4,
+  chartSection: {
+    alignItems: "center",
+    width: "100%",
+    marginTop: 10,
   },
   chartWrapper: {
-    marginVertical: 16,
+    marginVertical: 20,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  legendWrapper: {
+    width: "100%",
+    marginTop: 10,
+    paddingHorizontal: 10,
   },
   centerLabel: {
     alignItems: "center",
@@ -383,6 +341,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 40,
+    marginTop: 40,
   },
   loadingText: {
     marginTop: 16,
@@ -392,6 +351,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 40,
+    marginTop: 40,
   },
   noDataText: {
     marginTop: 16,
@@ -490,5 +450,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
-export default StatisticButton;

@@ -6,16 +6,18 @@ import {
   Pressable,
   TouchableOpacity,
   Platform,
-  InteractionManager
+  InteractionManager,
+  Modal,
+  View,
 } from "react-native";
-import { Modal, View } from "native-base";
 import ChooseCurrencyButton from "./ChooseCurrencyButton";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import Purchase, { openSubscriptionModal } from "./Purchase";
-import { useSubscriptionStatus } from "../../../db/hooks/useSubscription";
+import { presentPaywall } from "../../../utils/presentPaywall";
+import { useSubscriptionStatus } from "../../../utils/useSubscriptionStatus";
 import ProFeature from "../ProFeature";
+import { Ionicons } from "@expo/vector-icons";
 
 interface InputViewProps {
   onChange: (money: number) => void;
@@ -27,16 +29,16 @@ interface InputViewProps {
 // Memoized TextInput component to prevent unnecessary re-renders
 const AmountInput = memo(({ amount, changeAmount }: { amount: string, changeAmount: (text: string) => void }) => {
   // Calculate font size directly without state
-  const fontSize = amount.length > 6 ? 40 : 56;
-  
+  const fontSize = amount.length > 6 ? 36 : 48;
+
   // Create a local state copy for iOS to prevent UI lag
   const [localValue, setLocalValue] = useState(amount);
-  
+
   // Update local value when prop changes
   useEffect(() => {
     setLocalValue(amount);
   }, [amount]);
-  
+
   // Handle text changes with optimized rendering for iOS
   const handleTextChange = useCallback((text: string) => {
     if (Platform.OS === 'ios') {
@@ -51,18 +53,18 @@ const AmountInput = memo(({ amount, changeAmount }: { amount: string, changeAmou
       changeAmount(text);
     }
   }, [changeAmount]);
-  
-  // Use a more performant approach for the TextInput with iOS-specific optimizations
+
   return (
     <TextInput
       style={[
-        styles.newText, 
+        styles.amountInput,
         { fontSize },
         Platform.OS === 'ios' ? styles.iosTextInput : {}
       ]}
       keyboardType="numeric"
       returnKeyType="done"
       placeholder={"0.00"}
+      placeholderTextColor="#C0C0C0"
       onChangeText={handleTextChange}
       value={Platform.OS === 'ios' ? localValue : amount}
       maxLength={10}
@@ -72,15 +74,12 @@ const AmountInput = memo(({ amount, changeAmount }: { amount: string, changeAmou
       spellCheck={false}
       autoCapitalize="none"
       underlineColorAndroid="transparent"
-      // iOS-specific props to improve performance
       enablesReturnKeyAutomatically={false}
       contextMenuHidden={true}
-      // Disable auto-adjustments that can cause re-renders
       disableFullscreenUI={true}
     />
   );
 }, (prevProps, nextProps) => {
-  // Only re-render if the amount actually changed
   return prevProps.amount === nextProps.amount;
 });
 
@@ -92,39 +91,76 @@ export function NewInputView({
 }: InputViewProps) {
   const [showPicker, setShowPicker] = React.useState(false);
   const [internalPickerDate, setInternalPickerDate] = React.useState(new Date());
-  const [isPromoOpened, setIsPromoOpened] = React.useState(false);
+
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
+
+  // Use subscription status at top level (not inside conditional function)
+  const { hasActiveSubscription } = useSubscriptionStatus();
+  const hasProAccess = Platform.OS === 'android' || hasActiveSubscription;
 
   // Process amount changes with useCallback to prevent unnecessary re-renders
   const handleAmountChange = useCallback((text: string) => {
-    // Directly call changeAmount without any processing to minimize work
     changeAmount(text);
-    
-    // Debounce the onChange call to prevent excessive updates
-    // Only process the amount change for the parent component after a small delay
     const parsedAmount = Number(text.replace(/[,|-|*]/g, "."));
     requestAnimationFrame(() => {
       onChange(parsedAmount);
     });
   }, [onChange, changeAmount]);
 
-  const getModalOrPaywall = () => {
-    if (Platform.OS === "ios") {
-      const { data: subscriptionStatus } = useSubscriptionStatus();
+  const handleDatePress = () => {
+    if (hasProAccess) {
+      // PRO user or Android: open the date picker
+      setShowPicker(true);
+    } else {
+      // Non-PRO on iOS: show the RevenueCat paywall
+      presentPaywall();
+    }
+  };
 
-      if (isPromoOpened && subscriptionStatus === false) {
-        return (
-          <Purchase
-            isPromoOpened={isPromoOpened}
-            setIsPromoOpened={setIsPromoOpened}
-          />
-        );
-      } else if (isPromoOpened && subscriptionStatus === true) {
-        return (
-          <Modal
-            isOpen={showPicker}
-            onClose={() => setShowPicker(false)}
-            style={styles.pickerModal}
+  const handleSetDate = () => {
+    setDate(internalPickerDate);
+    setSelectedDate(internalPickerDate);
+    setInternalPickerDate(new Date());
+    setShowPicker(false);
+  };
+
+  const dateLabel = selectedDate
+    ? selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : 'Today';
+
+  return (
+    <View style={styles.inputArea}>
+      {/* Date chip - top right */}
+      <View style={styles.dateRow}>
+        <ProFeature
+          onProBadgePress={handleDatePress}
+          badgeOffset={{ x: -5, y: -8 }}
+        >
+          <Pressable
+            style={styles.dateChip}
+            onPress={handleDatePress}
           >
+            <Ionicons name="calendar-outline" size={14} color="#4169E1" />
+            <Text style={styles.dateChipText}>{dateLabel}</Text>
+          </Pressable>
+        </ProFeature>
+      </View>
+
+      {/* Amount + Currency on same line */}
+      <View style={styles.amountRow}>
+        <AmountInput amount={amount} changeAmount={handleAmountChange} />
+        <ChooseCurrencyButton />
+      </View>
+
+      {/* Date picker for PRO users (iOS) */}
+      {Platform.OS === "ios" && hasProAccess && (
+        <Modal
+          visible={showPicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowPicker(false)}
+        >
+          <View style={styles.modalOverlay}>
             <View style={styles.pickerView}>
               <RNDateTimePicker
                 value={internalPickerDate}
@@ -146,199 +182,135 @@ export function NewInputView({
                 <Text style={styles.buttonText}>Set</Text>
               </TouchableOpacity>
             </View>
-          </Modal>
-        );
-      }
-    } else if (Platform.OS === "android") {
-      return (
-        <Modal
-          isOpen={showPicker}
-          onClose={() => setShowPicker(false)}
-          style={styles.pickerModal}
-        >
-          <View style={styles.pickerView}>
-            <RNDateTimePicker
-              value={internalPickerDate}
-              mode="date"
-              is24Hour={true}
-              maximumDate={new Date()}
-              display="spinner"
-              style={styles.picker}
-              onChange={(event: DateTimePickerEvent, date?: Date) => {
-                if (date) {
-                  if (event.type === "set") {
-                    setDate(date);
-                    setShowPicker(false);
-                  } else {
-                    setInternalPickerDate(date);
-                  }
-                }
-                if (event.type === "dismissed") {
-                  setShowPicker(false);
-                }
-              }}
-            />
           </View>
         </Modal>
-      );
-    }
-  };
+      )}
 
-  const handleSetDate = () => {
-    setDate(internalPickerDate);
-    setInternalPickerDate(new Date());
-    setShowPicker(false);
-  };
-  
-  const handleProBadgePress = () => {
-    openSubscriptionModal();
-  };
-
-  return (
-    <View style={styles.InputArea}>
-      <View>
-        <View>
-          <View style={styles.dateSection}>
-            <Text style={styles.greyText}>ADD TODAY OR</Text>
-            <ProFeature
-              onProBadgePress={handleProBadgePress}
-            >
-              <Pressable
-                onPress={() => {
-                  setShowPicker(true);
-                  if (Platform.OS === "ios") {
-                    setIsPromoOpened(true);
+      {/* Date picker for Android */}
+      {Platform.OS === "android" && (
+        <Modal
+          visible={showPicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowPicker(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.pickerView}>
+              <RNDateTimePicker
+                value={internalPickerDate}
+                mode="date"
+                is24Hour={true}
+                maximumDate={new Date()}
+                display="spinner"
+                style={styles.picker}
+                onChange={(event: DateTimePickerEvent, date?: Date) => {
+                  if (date) {
+                    if (event.type === "set") {
+                      setDate(date);
+                      setSelectedDate(date);
+                      setShowPicker(false);
+                    } else {
+                      setInternalPickerDate(date);
+                    }
+                  }
+                  if (event.type === "dismissed") {
+                    setShowPicker(false);
                   }
                 }}
-              >
-                <Text style={styles.pressableText}>PICK A DATE</Text>
-              </Pressable>
-              {getModalOrPaywall()}
-            </ProFeature>
+              />
+            </View>
           </View>
-          <View style={styles.expensesBox}>
-            <AmountInput amount={amount} changeAmount={handleAmountChange} />
-            <ChooseCurrencyButton />
-          </View>
-          <View style={styles.lineStyle} />
-        </View>
-      </View>
+        </Modal>
+      )}
+
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  inputArea: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 2,
+  },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    gap: 5,
+  },
+  dateChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#4169E1',
+  },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  amountInput: {
+    color: '#1A1A1A',
+    lineHeight: 56,
+    minHeight: 56,
+    flex: 1,
+    textAlign: 'left',
+    fontWeight: '600',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    margin: 0,
+  },
+  iosTextInput: {
+    opacity: 0.99,
+    transform: [{ translateX: 0 }],
+    backfaceVisibility: 'hidden',
+    borderWidth: 0,
+  },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
     lineHeight: 22,
   },
-  currencySign: {
-    color: "#FFFFFF",
-    fontSize: 30,
-    fontWeight: "400",
-    lineHeight: 70,
-    paddingLeft: 0,
-  },
-  dateSection: {
-    flexDirection: "row",
-    alignContent: "center",
-    alignItems: "center",
-    paddingTop: 20,
-  },
-  inputGroup: {
-    height: "85%",
-    justifyContent: "flex-end",
-    marginBottom: 25,
-    marginHorizontal: 18,
-  },
-  input: {
-    height: "50%",
-    backgroundColor: "#565BD7",
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  pressableText: {
-    fontSize: 18,
-    fontWeight: "600",
-    lineHeight: 24,
-    color: "#2C65E1",
-  },
   picker: {
     width: "100%",
     backgroundColor: "white",
   },
-  pickerModal: {
-    display: "flex",
-    flexDirection: "column",
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   pickerView: {
     backgroundColor: "white",
     alignItems: "center",
     width: "100%",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 16,
   },
   setButton: {
-    backgroundColor: "#FFB547",
+    backgroundColor: "#4169E1",
     borderRadius: 50,
     width: 120,
     height: 50,
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
-    fontWeight: "800",
     marginBottom: 14,
-  },
-  text: {
-    fontSize: 35,
-    color: "#FFFFFF",
-    textAlign: "right",
-    textAlignVertical: "bottom",
-    alignSelf: "center",
-  },
-  InputArea: {
-    marginLeft: 20,
-    marginBottom: Platform.OS === 'ios' ? 0 : 15,
-    height: 150,
-    width: 340,
-  },
-  newText: {
-    color: "#000000",
-    lineHeight: 64,
-    minHeight: 64,
-    flex: 1,
-    textAlign: 'left',
-    fontWeight: '400',
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    margin: 0,
-  },
-  greyText: {
-    fontSize: 18,
-    fontWeight: "600",
-    lineHeight: 24,
-    color: "#00000080",
-    paddingRight: 5,
-  },
-  expensesBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  lineStyle: {
-    borderWidth: 0.5,
-    borderColor: "#B8B9BC",
-  },
-  iosTextInput: {
-    // iOS-specific styles to improve performance
-    opacity: 0.99, // Trick to force hardware acceleration
-    transform: [{ translateX: 0 }], // Force GPU rendering
-    backfaceVisibility: 'hidden', // Reduce composite layers
-    borderWidth: 0, // Remove border which can cause repaints
   },
 });

@@ -1,47 +1,58 @@
 import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import {
   Alert,
-  Dimensions,
   StyleSheet,
   Pressable,
   View,
   Platform,
   Keyboard,
-  ScrollView,
   KeyboardAvoidingView,
-  InteractionManager
+  InteractionManager,
+  Modal,
+  SafeAreaView,
+  Text,
+  TextInput,
 } from "react-native";
-import { Actionsheet, Box, useDisclose } from "native-base";
+import { Ionicons } from "@expo/vector-icons";
+import { useDisclose } from "../../utils/useDisclose";
 import PlusIcon from "./expenses/icons/plus";
 import ExpensesContainer from "./expenses/ExpensesContainer";
-import CountrySelector from "./selector/CountrySelector";
 import BigBlueButton from "./BigBlueButton";
 import { NewInputView } from "./input/InputFrame";
 import { useAddExpense } from "../../db/hooks/useExpenses";
 import useHomeCountry from "../../db/hooks/useHomeCountry";
 import { useSetting } from "../../utils/settings";
+import { useActiveTrip } from "../../db/hooks/useTrips";
+import useExchangeRate from "../../db/hooks/useExchangeRate";
+import useSubscriptionStatus from "../../utils/useSubscriptionStatus";
+import { presentPaywall } from "../../utils/presentPaywall";
 
 interface BlueButtonProps {
   hideUI?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
+  tripId?: number;
 }
 
 // Memoized expense form to prevent unnecessary re-renders
 const ExpenseForm = memo(({
   sum,
+  comment,
   handleAmountChange,
   handleAmountOfSpendingChange,
   setDate,
   setExpenseType,
+  setComment,
   activeExpenseTypeKey,
   setActiveExpenseTypeKey
 }: {
   sum: string;
+  comment: string;
   handleAmountChange: (value: string) => void;
   handleAmountOfSpendingChange: (value: number) => void;
   setDate: (date: Date) => void;
   setExpenseType: (type: string) => void;
+  setComment: (comment: string) => void;
   activeExpenseTypeKey?: string;
   setActiveExpenseTypeKey: (key: string) => void;
 }) => {
@@ -55,26 +66,61 @@ const ExpenseForm = memo(({
     />
   ), [sum, handleAmountChange, handleAmountOfSpendingChange, setDate]);
 
-  // Reset expense type when sum changes to empty (form reset)
-  useEffect(() => {
-    if (sum === "" && activeExpenseTypeKey) {
-      setActiveExpenseTypeKey("");
-      setExpenseType("");
+  // Handle paywall for comments
+  const { hasActiveSubscription } = useSubscriptionStatus();
+  const hasProAccess = Platform.OS === 'android' || hasActiveSubscription;
+
+  const handleCommentFocus = () => {
+    if (!hasProAccess) {
+      Keyboard.dismiss();
+      presentPaywall();
     }
-  }, [sum, activeExpenseTypeKey, setActiveExpenseTypeKey, setExpenseType]);
+  };
+
+  // Form resets are handled explicitly in the parent BlueButton's onOpen handler.
 
   return (
     <>
       {InputComponent}
-      <View style={{ flex: 1 }}>
-        <CountrySelector />
-        <Box marginTop={5} flex={1}>
+      <View style={{ flex: 1, paddingTop: 8 }}>
+        <View style={{ marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8 }}>OPTIONAL COMMENT</Text>
+            <Text style={{ fontSize: 12, color: '#999' }}>{comment.length}/45</Text>
+          </View>
+          <Pressable
+            onPress={handleCommentFocus}
+            style={{ width: '100%' }}
+          >
+            <View pointerEvents={hasProAccess ? "auto" : "none"}>
+              <TextInput
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 16,
+                  color: '#1A1A1A',
+                  opacity: hasProAccess ? 1 : 0.7,
+                  textAlign: 'center',
+                }}
+                placeholder={hasProAccess ? "Add a note..." : "Add a note (PRO)"}
+                placeholderTextColor="#999"
+                value={comment}
+                onChangeText={setComment}
+                maxLength={45}
+                editable={hasProAccess}
+              />
+            </View>
+          </Pressable>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 0.8, marginBottom: 12 }}>CATEGORY</Text>
           <ExpensesContainer
             setExpenseType={setExpenseType}
             activeExpenseTypeKey={activeExpenseTypeKey}
             setActiveExpenseTypeKey={setActiveExpenseTypeKey}
           />
-        </Box>
+        </View>
       </View>
     </>
   );
@@ -84,6 +130,7 @@ const ExpenseForm = memo(({
   // We need to check all props that affect the rendering
   return (
     prevProps.sum === nextProps.sum &&
+    prevProps.comment === nextProps.comment &&
     prevProps.activeExpenseTypeKey === nextProps.activeExpenseTypeKey &&
     // If sum is empty, we're in a reset state, so always re-render
     prevProps.sum !== ""
@@ -93,26 +140,59 @@ const ExpenseForm = memo(({
 const BlueButton: React.FC<BlueButtonProps> = ({
   hideUI = false,
   isOpen: externalIsOpen,
-  onClose: externalOnClose
+  onClose: externalOnClose,
+  tripId
 }) => {
   const [amountOfSpending, setAmountOfSpending] = useState<number>();
   const [date, setDate] = useState(new Date());
   const [sum, changeSum] = useState("");
+  const [comment, setComment] = useState("");
   const [expenseType, setExpenseType] = useState<string>();
   const { data: homeCountry } = useHomeCountry();
-  const [currentCountry] = useSetting<number>("selectedCountry");
-  const [selectedCurrency] = useSetting<string>("selectedCurrency");
+  const [currentCountry, setCurrentCountry] = useSetting<number>("selectedCountry");
+  const [selectedCurrency, setSelectedCurrency] = useSetting<string>("selectedCurrency");
   const { mutate: addExpense, isPending: isSavingExpense } = useAddExpense();
   const [activeExpenseTypeKey, setActiveExpenseTypeKey] = useState<string>();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const { data: activeTrip } = useActiveTrip();
 
   const isoDate = date.toISOString().split("T")[0];
+
+  // Prefetch the exchange rate in the background while the user fills the form
+  const { data: exchangeRate, isFetching: isFetchingRate } = useExchangeRate({
+    selectedCurrency: selectedCurrency,
+    homeCurrency: homeCountry?.currency,
+    isoDate: isoDate,
+  });
 
   // Use internal state if external props are not provided
   const { isOpen: internalIsOpen, onOpen: internalOnOpen, onClose: internalOnClose } = useDisclose();
 
   // Determine which values to use
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+
+  // Track if we were previously open to detect open events
+  const [wasOpen, setWasOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && !wasOpen) {
+      // Form was just opened (either internally or externally)
+      // Reset all form values to ensure we don't remember previous expense data
+      setAmountOfSpending(undefined);
+      changeSum("");
+      setComment("");
+      setExpenseType(undefined);
+      setActiveExpenseTypeKey("");
+      setDate(new Date());
+
+      // Auto-fill active trip config if available
+      if (activeTrip) {
+        if (setCurrentCountry) setCurrentCountry(activeTrip.country_id);
+        if (setSelectedCurrency) setSelectedCurrency(activeTrip.target_currency);
+      }
+    }
+    setWasOpen(isOpen);
+  }, [isOpen, wasOpen, activeTrip, setCurrentCountry, setSelectedCurrency]);
 
   // Reset all form values when closing the form
   const onClose = useCallback(() => {
@@ -126,18 +206,22 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     setActiveExpenseTypeKey("");
   }, [externalOnClose, internalOnClose]);
 
-  // Reset all form values when opening the form
+  // Reset all form values when opening the form (Internal trigger)
   const onOpen = useCallback(() => {
-    // Reset all form values to ensure we don't remember previous expense data
     setAmountOfSpending(undefined);
     changeSum("");
+    setComment("");
     setExpenseType(undefined);
     setActiveExpenseTypeKey("");
     setDate(new Date());
 
-    // Then open the form
+    if (activeTrip) {
+      if (setCurrentCountry) setCurrentCountry(activeTrip.country_id);
+      if (setSelectedCurrency) setSelectedCurrency(activeTrip.target_currency);
+    }
+
     internalOnOpen();
-  }, [internalOnOpen]);
+  }, [internalOnOpen, activeTrip, setCurrentCountry, setSelectedCurrency]);
 
   // Optimized amount change handler with debounce for iOS
   const handleAmountChange = useCallback((value: string) => {
@@ -201,7 +285,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     }
   }, [isOpen]);
 
-  // Strictly check if all required fields are filled
+  // Strictly check if all required fields are filled and the exchange rate is ready
   const isActive = useMemo(() => {
     return Boolean(
       homeCountry &&
@@ -210,12 +294,14 @@ const BlueButton: React.FC<BlueButtonProps> = ({
       amountOfSpending &&
       amountOfSpending > 0 &&
       sum.trim() !== "" &&
-      !isSavingExpense
+      !isSavingExpense &&
+      !isFetchingRate &&
+      exchangeRate !== undefined
     );
-  }, [homeCountry, expenseType, currentCountry, amountOfSpending, sum, isSavingExpense]);
+  }, [homeCountry, expenseType, currentCountry, amountOfSpending, sum, isSavingExpense, isFetchingRate, exchangeRate]);
 
   async function saveTransaction() {
-    if (isSavingExpense) return;
+    if (isSavingExpense || isFetchingRate || exchangeRate === undefined) return;
 
     // Double-check all required fields are filled
     if (!homeCountry)
@@ -229,38 +315,7 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     if (!selectedCurrency)
       return Alert.alert("you have to choose currency");
 
-    const convertRate = async (
-      selectedCurrency: string | undefined,
-      homeCurrency: string
-    ) => {
-      const homeCurrencyLowerCase = homeCurrency?.toLowerCase();
-      const selectedCurrencyLowerCase = selectedCurrency?.toLowerCase();
-      let currentRateInfo;
-
-      currentRateInfo = await fetch(
-        `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${isoDate}/v1/currencies/${selectedCurrencyLowerCase}.json`
-      );
-
-      if (!currentRateInfo.ok) {
-        const fallbackUrl = `https://${isoDate}.currency-api.pages.dev/v1/currencies/${selectedCurrencyLowerCase}.json`;
-        currentRateInfo = await fetch(fallbackUrl);
-      }
-
-      if (!currentRateInfo.ok) {
-        throw new Error("Both primary and fallback fetch failed");
-      }
-
-      const currentRate = await currentRateInfo.json();
-      if (selectedCurrencyLowerCase && homeCurrencyLowerCase) {
-        return currentRate[selectedCurrencyLowerCase][homeCurrencyLowerCase];
-      }
-      return undefined;
-    };
-
-    const homeCurrencyValue = await convertRate(
-      selectedCurrency,
-      homeCountry.currency
-    );
+    const homeCurrencyValue = exchangeRate;
 
     addExpense(
       {
@@ -268,23 +323,26 @@ const BlueButton: React.FC<BlueButtonProps> = ({
         amount_in_home_currency:
           Number(amountOfSpending) * homeCurrencyValue * 100,
         home_currency: homeCountry.currency,
-        selected_currency: selectedCurrency,
+        selected_currency: String(selectedCurrency),
         country_id: Number(currentCountry),
         expense_types: expenseType,
+        comment: comment.trim() !== "" ? comment.trim() : undefined,
         date: date,
+        trip_id: tripId || activeTrip?.id || undefined,
       },
       {
         onSuccess: () => {
           // Reset all form values after successful save
           setAmountOfSpending(undefined);
           changeSum("");
+          setComment("");
           setExpenseType("");
           setActiveExpenseTypeKey("");
           setDate(new Date());
           onClose();
         },
-        onError: () => {
-          Alert.alert("something went wrong");
+        onError: (error) => {
+          Alert.alert("something went wrong", (error as Error)?.message || String(error));
         },
       }
     );
@@ -294,9 +352,6 @@ const BlueButton: React.FC<BlueButtonProps> = ({
     onOpen();
   };
 
-  const windowHeight = Dimensions.get("window").height;
-  const marginTop = windowHeight * 0.1;
-
   return (
     <>
       {!hideUI && (
@@ -304,41 +359,47 @@ const BlueButton: React.FC<BlueButtonProps> = ({
           <PlusIcon />
         </Pressable>
       )}
-      <Actionsheet isOpen={isOpen} onClose={onClose}>
-        <Actionsheet.Content maxHeight={"100%"} marginTop={marginTop}>
+      <Modal visible={isOpen} animationType="slide" transparent={false} onRequestClose={onClose}>
+        <SafeAreaView style={styles.modalSafeArea}>
+          {/* Header: drag handle centered, close button right-aligned */}
+          <View style={styles.modalHeader}>
+            <View style={{ width: 32 }} />
+            <View style={styles.dragHandle} />
+            <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
+              <Ionicons name="close" size={16} color="#666" />
+            </Pressable>
+          </View>
+
           <KeyboardAvoidingView
-            style={{ width: "100%", height: "100%" }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+            style={styles.keyboardAvoidingView}
+            behavior={"padding"}
           >
-            <ScrollView
-              style={{ width: "100%" }}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 80 }}
-            >
+            <View style={{ paddingHorizontal: 16, paddingTop: 20, flex: 1 }}>
               <ExpenseForm
                 sum={sum}
+                comment={comment}
                 handleAmountChange={handleAmountChange}
                 handleAmountOfSpendingChange={handleAmountOfSpendingChange}
                 setDate={setDate}
                 setExpenseType={setExpenseType}
+                setComment={setComment}
                 activeExpenseTypeKey={activeExpenseTypeKey}
                 setActiveExpenseTypeKey={setActiveExpenseTypeKey}
               />
-            </ScrollView>
+            </View>
+
             {!keyboardVisible && (
-              <Box marginY={5}>
+              <View style={styles.saveButtonContainer}>
                 <BigBlueButton
                   onPress={saveTransaction}
                   isActive={isActive}
                   text="SAVE"
                 />
-              </Box>
+              </View>
             )}
           </KeyboardAvoidingView>
-        </Actionsheet.Content>
-      </Actionsheet>
+        </SafeAreaView>
+      </Modal>
     </>
   );
 };
@@ -353,6 +414,45 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 40,
     alignSelf: "center",
+  },
+  modalSafeArea: {
+    flex: 1,
+    backgroundColor: "#F7F8FA",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 12,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#F7F8FA",
+  },
+  dragHandle: {
+    width: 36,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#D0D0D0",
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#E8E8ED",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+    width: "100%",
+  },
+  saveButtonContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 20,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
   },
 });
 

@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Pressable, Text, View, Dimensions } from "react-native";
-import { Actionsheet, Box, Button, IconButton, useDisclose } from "native-base";
-import useCountries from "../../../db/hooks/useCountries";
+import { StyleSheet, Pressable, Text, View, Dimensions, Modal, TouchableWithoutFeedback } from "react-native";
+import { useDisclose } from "../../../utils/useDisclose";
+import { useVisitedCountries } from "../../../db/hooks/useCountries";
+import { Ionicons } from "@expo/vector-icons";
 import FilterIcon from "./icons/filter";
 import CalendarIcon from "./icons/calendar";
 import ExpensesCategoryIcon from "./icons/expenses-type";
 import { expensesArray, mergeCategories } from "../../../utils/expensesList";
-import { SmallWhiteButton, SmallYellowButton } from "../smallButton";
+import { SmallWhiteButton, SmallPrimaryButton } from "../smallButton";
 import { UseExpensesFilter } from "../../../db/hooks/useExpenses";
 import useMonths from "../../../db/hooks/useMonths";
-import { BetterPickerSelect } from "../BetterPickerSelect";
 import CustomDropdown from "../CustomDropdown";
 import useCustomCategories from "../../../db/hooks/useCustomCategories";
 
@@ -24,7 +24,7 @@ export default function ExpensesFilterButton({
   onSave,
   expensesFilter,
 }: FilterButtonProps) {
-  const { data: countries } = useCountries();
+  const { data: countries } = useVisitedCountries();
   const { data: months } = useMonths();
   const { data: customCategories } = useCustomCategories();
 
@@ -102,10 +102,10 @@ export default function ExpensesFilterButton({
 
   const expensesList = useMemo(() => {
     // Get the merged array that includes custom categories
-    const { mergedExpensesArray } = customCategories 
-      ? mergeCategories(customCategories) 
+    const { mergedExpensesArray } = customCategories
+      ? mergeCategories(customCategories)
       : { mergedExpensesArray: expensesArray };
-    
+
     return mergedExpensesArray.map(({ key, text }, index) => ({
       label: `${text}`,
       value: key,
@@ -119,85 +119,86 @@ export default function ExpensesFilterButton({
       <Pressable style={styles.button} onPress={onButtonPress}>
         <FilterIcon />
       </Pressable>
-      <Actionsheet
-        style={styles.container}
-        isOpen={isOpen}
-        onClose={onClose}
-        hideDragIndicator
-      >
-        <Actionsheet.Content>
-          <Box style={styles.header}>
+      <Modal visible={isOpen} animationType="slide" transparent={true} onRequestClose={onClose}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={styles.bottomSheet}>
+          <View style={styles.dragHandle} />
+          <View style={styles.header}>
             <Text style={styles.text}>Filter</Text>
-          </Box>
+          </View>
           <View style={styles.selectorsBox}>
-            <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
+            <View style={{ backgroundColor: "transparent", width: "100%", alignItems: "center", paddingVertical: 10 }}>
               <CustomDropdown
                 items={countryList}
                 selectedValue={selectedCountryId}
                 placeholder="Choose Country"
                 showIcons={false}
-                leftIcon={<Text>🧭</Text>}
+                leftIcon={<Ionicons name="location-outline" size={24} color="#4169E1" />}
                 width={SCREEN_WIDTH * 0.85}
                 onValueChange={(value) =>
                   setSelectedCountryId(value === "no-country" ? undefined : Number(value))
                 }
               />
-            </Actionsheet.Item>
-            <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
+            </View>
+            <View style={{ backgroundColor: "transparent", width: "100%", alignItems: "center", paddingVertical: 10 }}>
               <CustomDropdown
                 items={expensesList}
                 selectedValue={selectedCategory}
                 placeholder="Choose Category"
                 showIcons={false}
-                leftIcon={<Text>🛍</Text>}
+                leftIcon={<ExpensesCategoryIcon />}
                 width={SCREEN_WIDTH * 0.85}
                 onValueChange={(value) =>
                   setSelectedCategory(value === "no-category" ? "" : value)
                 }
               />
-            </Actionsheet.Item>
-            <Actionsheet.Item style={{ backgroundColor: "transparent" }}>
+            </View>
+            <View style={{ backgroundColor: "transparent", width: "100%", alignItems: "center", paddingVertical: 10 }}>
               <CustomDropdown
                 items={monthsList}
                 selectedValue={selectedMonth}
                 placeholder="Choose Month"
                 showIcons={false}
-                leftIcon={<Text>📅</Text>}
+                leftIcon={<CalendarIcon />}
                 width={SCREEN_WIDTH * 0.85}
                 onValueChange={(value) =>
                   setSelectedMonth(value === "no-month" ? "" : value)
                 }
               />
-            </Actionsheet.Item>
+            </View>
           </View>
           <View style={styles.buttonContainer}>
-            <SmallYellowButton onPress={internalOnSave} text="Save" />
+            <SmallPrimaryButton onPress={internalOnSave} text="Save" />
             <SmallWhiteButton onPress={internalOnClose} text="Back" />
           </View>
-        </Actionsheet.Content>
-      </Actionsheet>
+        </View>
+      </Modal>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   buttonStyle: {
-    backgroundColor: "#565BD7",
+    backgroundColor: "#4169E1",
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
   buttonContainer: {
     flexDirection: "row",
-    marginTop: -160,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    gap: 12,
   },
   container: {
     alignItems: "center",
     height: "100%",
-    paddingTop: 20,
   },
   selectorGroup: {
     flexDirection: "row",
@@ -205,35 +206,38 @@ const styles = StyleSheet.create({
     height: 60,
     width: "100%",
     borderWidth: 1,
-    borderRadius: 10,
-    borderColor: "#C3C5F3",
+    borderRadius: 12,
+    borderColor: "#E8EEFF",
   },
   selectorsBox: {
-    height: 400,
+    height: "auto",
+    paddingBottom: 20,
+    marginTop: 10,
   },
   button: {
-    backgroundColor: "#1C1D1F",
-    height: 40,
-    width: 40,
-    color: "#FFFFFF",
+    backgroundColor: "#FFFFFF",
+    height: 44,
+    width: 44,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
-    shadowColor: "#EDEAEA",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 2,
-    elevation: 5,
-    marginLeft: 5,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "transparent",
+    marginLeft: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   selectorButton: {
     height: "100%",
     width: "16%",
-    backgroundColor: "#F3F6FF",
-    borderColor: "#C3C5F3",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E8EEFF",
     borderWidth: 0.3,
-    borderTopLeftRadius: 7,
-    borderBottomLeftRadius: 7,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
   },
@@ -243,15 +247,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "83%",
     height: "100%",
-    borderRadius: 10,
+    borderRadius: 12,
     paddingLeft: 5,
-    borderColor: "#C3C5F3",
+    borderColor: "#E8EEFF",
   },
   text: {
-    fontWeight: "600",
-    fontSize: 18,
-    lineHeight: 21,
-    color: "#494EBF",
+    fontWeight: "700",
+    fontSize: 20,
+    lineHeight: 24,
+    color: "#1A1A1A",
   },
   icon: {
     color: "#FFFFFF",
@@ -259,6 +263,31 @@ const styles = StyleSheet.create({
   },
   header: {
     justifyContent: "center",
-    paddingTop: 20,
+    paddingTop: 15,
+    paddingBottom: 5,
+    alignItems: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
+    maxHeight: "90%",
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#D0D0D0",
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: 8,
   },
 });

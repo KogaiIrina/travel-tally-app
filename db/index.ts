@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import * as SQLite from "expo-sqlite";
 
 let db: SQLite.SQLiteDatabase;
+let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 async function createDatabase() {
   if (Platform.OS === "web") {
@@ -10,51 +11,62 @@ async function createDatabase() {
 
   // Use the new SQLite API
   db = await SQLite.openDatabaseAsync("db.db");
-  
+
   // Enable WAL mode for better performance
   await db.execAsync("PRAGMA journal_mode = WAL");
   await db.execAsync("PRAGMA foreign_keys = ON");
-  
+
   return db;
 }
 
-// Initialize the database
-createDatabase();
+async function getDb() {
+  if (db) return db;
+  if (!initPromise) {
+    initPromise = createDatabase();
+  }
+  return await initPromise;
+}
 
 // Export a wrapper object that provides transaction-like functionality
 export default {
   async runAsync(query: string, params: (string | number | null)[] = []): Promise<void> {
-    if (!db) await createDatabase();
-    await db.runAsync(query, params);
+    const database = await getDb();
+
+    // Safety check map to sanitize undefined to null to prevent NPE in expo-sqlite Java bridge
+    const safeParams = params.map(p => p === undefined ? null : p);
+    await database.runAsync(query, safeParams);
   },
-  
+
   async getAllAsync<T>(query: string, params: (string | number | null)[] = []): Promise<T[]> {
-    if (!db) await createDatabase();
-    return await db.getAllAsync<T>(query, params);
+    const database = await getDb();
+
+    const safeParams = params.map(p => p === undefined ? null : p);
+    return await database.getAllAsync<T>(query, safeParams);
   },
-  
+
   async transaction(callback: (tx: { executeSql: (query: string, params?: any[]) => Promise<any> }) => void): Promise<void> {
-    if (!db) await createDatabase();
-    
+    const database = await getDb();
+
     // Create a transaction-like object that mimics the old API
     const tx = {
       executeSql: async (query: string, params: any[] = []) => {
-        return await db.runAsync(query, params);
+        const safeParams = params.map(p => p === undefined ? null : p);
+        return await database.runAsync(query, safeParams);
       }
     };
-    
+
     await callback(tx);
   },
-  
+
   async withTransactionSync(callback: () => void): Promise<void> {
-    if (!db) await createDatabase();
-    
+    const database = await getDb();
+
     try {
-      await db.execAsync('BEGIN TRANSACTION');
+      await database.execAsync('BEGIN TRANSACTION');
       callback();
-      await db.execAsync('COMMIT');
+      await database.execAsync('COMMIT');
     } catch (error) {
-      await db.execAsync('ROLLBACK');
+      await database.execAsync('ROLLBACK');
       throw error;
     }
   }

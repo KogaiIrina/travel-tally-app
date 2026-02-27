@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { Text, StyleSheet, Pressable } from "react-native";
+import { Text, StyleSheet, Pressable, View } from "react-native";
 
 interface ExpenseButtonProps {
   color: string;
@@ -21,22 +21,18 @@ export default function ExpenseButton({
       style={[
         styles.container,
         {
-          backgroundColor: color,
-          opacity: active ? 0.6 : 1,
-          shadowColor: active ? color : "#fff",
-          shadowOffset: {
-            width: 10,
-            height: 12,
-          },
-          shadowOpacity: active ? 0.58 : 0,
-          shadowRadius: active ? 16.0 : 0,
-          elevation: active ? 24 : 0,
+          backgroundColor: active ? "#F4F7FF" : "#FFFFFF",
+          borderWidth: 2,
+          borderColor: active ? "#4169E1" : "transparent",
+          transform: [{ scale: active ? 0.98 : 1 }],
         },
       ]}
       onPress={onPress}
     >
-      {icon}
-      <Text style={styles.caption} numberOfLines={1}>
+      <View style={[styles.iconContainer, { backgroundColor: color }]}>
+        {icon}
+      </View>
+      <Text style={[styles.caption, { color: active ? "#4169E1" : "#1A1A1A" }]} numberOfLines={1}>
         {text}
       </Text>
     </Pressable>
@@ -46,19 +42,29 @@ export default function ExpenseButton({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginLeft: 5,
+    height: 105,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    height: 80,
-    width: 80,
-    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   caption: {
-    fontSize: 12,
-    alignSelf: "center",
-    color: "rgba(255, 255, 255, 1)",
-    lineHeight: 14,
-    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "600",
     marginHorizontal: 4,
   },
 });

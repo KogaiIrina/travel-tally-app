@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 
-export function SmallYellowButton({
+export function SmallPrimaryButton({
   onPress,
   text,
   ...props
@@ -19,11 +19,11 @@ export function SmallYellowButton({
         onPress={onPress}
         style={({ pressed }) =>
           pressed
-            ? [styles.yellowButton, { opacity: 0.7 }]
-            : [styles.yellowButton]
+            ? [styles.primaryButton, { opacity: 0.7 }]
+            : [styles.primaryButton]
         }
       >
-        <Text style={styles.yellowButtonText}>{text}</Text>
+        <Text style={styles.primaryButtonText}>{text}</Text>
       </Pressable>
     </View>
   );
@@ -53,38 +53,41 @@ export function SmallWhiteButton({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 100,
-    marginBottom: 15,
+    marginVertical: 15,
   },
-  yellowButton: {
-    backgroundColor: "#FFB547",
-    borderRadius: 50,
-    width: 190,
-    height: 60,
+  primaryButton: {
+    backgroundColor: "#4169E1",
+    borderRadius: 30,
+    width: "100%",
+    minWidth: 150,
+    height: 56,
     justifyContent: "center",
     alignItems: "center",
-    fontWeight: "800",
     alignSelf: "center",
+    shadowColor: "#4169E1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  yellowButtonText: {
+  primaryButtonText: {
     color: "#FFFFFF",
     fontSize: 18,
-    lineHeight: 22,
+    fontWeight: "700",
   },
   whiteButton: {
-    backgroundColor: "transparent",
-    borderRadius: 50,
-    width: 150,
-    height: 60,
+    backgroundColor: "#F4F7FF",
+    borderRadius: 30,
+    width: "100%",
+    minWidth: 120,
+    height: 56,
     justifyContent: "center",
     alignItems: "center",
-    fontWeight: "800",
     alignSelf: "center",
   },
   whiteButtonText: {
-    color: "#212224",
+    color: "#4169E1",
     fontSize: 18,
-    lineHeight: 22,
     fontWeight: "700",
   },
 });

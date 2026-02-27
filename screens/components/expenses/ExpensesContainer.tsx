@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Platform } from "react-native";
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Platform, Keyboard } from "react-native";
 import ExpenseButton from "./ExpenseButton";
 import { expensesArray, mergeCategories } from "../../../utils/expensesList";
 import useCustomCategories from "../../../db/hooks/useCustomCategories";
 import { Ionicons } from "@expo/vector-icons";
 import AddCategoryModal from "./AddCategoryModal";
 import ProFeature from "../../components/ProFeature";
-import Purchase from "../../components/input/Purchase";
 import { useSubscriptionStatus } from "../../../utils/useSubscriptionStatus";
+import { presentPaywall } from "../../../utils/presentPaywall";
 
 interface AddExpensesProps {
   setExpenseType: (text: string) => void;
@@ -23,9 +23,9 @@ export default function ExpensesContainer({
   const { data: customCategories } = useCustomCategories();
   const [allExpenseButtons, setAllExpenseButtons] = useState(expensesArray);
   const [showAddCategory, setShowAddCategory] = useState(false);
-  const [isPromoOpened, setIsPromoOpened] = useState(false);
+
   const { hasActiveSubscription } = useSubscriptionStatus();
-  
+
   // Check if user has access to Pro features (iOS with subscription or any Android user)
   const hasProAccess = Platform.OS === 'android' || hasActiveSubscription;
 
@@ -38,6 +38,7 @@ export default function ExpensesContainer({
   }, [customCategories]);
 
   const onExpenseButtonPress = (expenseTypeKey: string) => {
+    Keyboard.dismiss();
     setExpenseType(expenseTypeKey);
     setActiveExpenseTypeKey(expenseTypeKey);
   };
@@ -46,7 +47,7 @@ export default function ExpensesContainer({
     if (hasProAccess) {
       setShowAddCategory(true);
     } else {
-      setIsPromoOpened(true);
+      presentPaywall();
     }
   };
 
@@ -54,18 +55,7 @@ export default function ExpensesContainer({
     setShowAddCategory(false);
   };
 
-  // Function to render the paywall modal
-  const getPaywall = () => {
-    if (Platform.OS === 'ios' && isPromoOpened && !hasActiveSubscription) {
-      return (
-        <Purchase
-          isPromoOpened={isPromoOpened}
-          setIsPromoOpened={setIsPromoOpened}
-        />
-      );
-    }
-    return null;
-  };
+
 
   const buttons = allExpenseButtons.map((expense) => (
     <ExpenseButton
@@ -84,20 +74,24 @@ export default function ExpensesContainer({
       key="add-category"
       style={styles.addCategoryButton}
       onPress={onAddCategoryPress}
+      activeOpacity={0.7}
     >
-      <Ionicons name="add-circle-outline" size={24} color="#2C65E1" />
-      <Text style={styles.addCategoryText}>Add {'\n'} Category</Text>
+      <View style={styles.addCategoryIconContainer}>
+        <Ionicons name="add" size={32} color="#4169E1" />
+      </View>
+      <Text style={styles.addCategoryText}>New</Text>
     </TouchableOpacity>
   );
 
   // Wrap the Add Category button with ProFeature for non-subscribers on iOS only
   const addCategoryButton = Platform.OS === 'ios' && !hasActiveSubscription ? (
-    <ProFeature 
+    <ProFeature
       key="add-category-pro-feature"
       badgeSize="small"
       badgePosition="top-right"
-      badgeOffset={{ x: -10, y: 10 }}
+      badgeOffset={{ x: -5, y: -2 }}
       disableInteraction={false}
+      style={{ flex: 1 }}
     >
       {addCategoryButtonContent}
     </ProFeature>
@@ -106,7 +100,7 @@ export default function ExpensesContainer({
   );
 
   // Calculate rows for the grid display
-  const itemsPerRow = 4;
+  const itemsPerRow = 3;
   const rows = [];
   for (let i = 0; i < buttons.length; i += itemsPerRow) {
     rows.push(buttons.slice(i, i + itemsPerRow));
@@ -120,55 +114,79 @@ export default function ExpensesContainer({
     rows.push([addCategoryButton]);
   }
 
+  // Fill the last row with invisible spacers to maintain consistent tile widths
+  const finalRow = rows[rows.length - 1];
+  while (finalRow.length < itemsPerRow) {
+    finalRow.push(<View key={`spacer-${finalRow.length}`} style={{ flex: 1 }} />);
+  }
+
   return (
     <>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
         {rows.map((row, index) => (
           <View key={`row-${index}`} style={styles.expensesRow}>
             {row}
           </View>
         ))}
       </ScrollView>
-      
-      <AddCategoryModal 
-        visible={showAddCategory} 
-        onClose={onCloseAddCategory} 
+
+      <AddCategoryModal
+        visible={showAddCategory}
+        onClose={onCloseAddCategory}
       />
-      
-      {/* Render the paywall modal */}
-      {getPaywall()}
+
+
     </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    maxWidth: "90%",
-    left: "5%",
+    width: '100%',
+    paddingHorizontal: 16,
   },
   expensesRow: {
-    marginBottom: 5,
+    marginBottom: 10,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
+    gap: 10,
   },
   addCategoryButton: {
     flex: 1,
-    marginLeft: 5,
+    height: 105,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    height: 80,
-    width: 80,
-    borderRadius: 15,
     borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "#2C65E1",
-    backgroundColor: "rgba(44, 101, 225, 0.1)",
+    borderColor: "transparent",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  addCategoryIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: "#E8EEFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   addCategoryText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#2C65E1",
-    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#4169E1",
+    marginHorizontal: 4,
   },
 });

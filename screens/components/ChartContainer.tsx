@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
-import { useColorModeValue } from 'native-base';
+import { StyleSheet, View, Text, Dimensions, useColorScheme } from 'react-native';
 
 interface ChartContainerProps {
   title: string;
@@ -13,10 +12,13 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
   subtitle,
   children
 }) => {
-  const bgColor = useColorModeValue('white', '#1A1A1A');
-  const borderColor = useColorModeValue('#E5E5E5', '#333333');
-  const textColor = useColorModeValue('#333333', '#E5E5E5');
-  const subtitleColor = useColorModeValue('#666666', '#AAAAAA');
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const bgColor = isDark ? '#1A1A1A' : 'white';
+  const borderColor = isDark ? '#333333' : '#E5E5E5';
+  const textColor = isDark ? '#E5E5E5' : '#333333';
+  const subtitleColor = isDark ? '#AAAAAA' : '#666666';
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor, borderColor }]}>

@@ -96,7 +96,21 @@ function Entrypoint() {
             "selected_currency TEXT," +
             "country_id INTEGER REFERENCES countries(id)," +
             "expense_types TEXT," +
+            "comment TEXT DEFAULT NULL," +
             "date DATETIME" +
+            ")"
+          );
+
+          await tx.executeSql(
+            "CREATE TABLE IF NOT EXISTS trips (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "name TEXT NOT NULL," +
+            "country_id INTEGER REFERENCES countries(id)," +
+            "base_currency TEXT," +
+            "target_currency TEXT," +
+            "start_date DATETIME," +
+            "end_date DATETIME," +
+            "is_active BOOLEAN DEFAULT 0" +
             ")"
           );
 
@@ -118,6 +132,67 @@ function Entrypoint() {
             "is_active BOOLEAN NOT NULL" +
             ")"
           );
+
+          // Check if trip_id exists in expenses table
+          const expensesInfo = await db.getAllAsync<{ name: string }>("PRAGMA table_info(expenses)");
+          const hasTripId = expensesInfo.some(col => col.name === "trip_id");
+          const hasComment = expensesInfo.some(col => col.name === "comment");
+
+          if (!hasComment && expensesInfo.length > 0) {
+            await tx.executeSql("ALTER TABLE expenses ADD COLUMN comment TEXT DEFAULT NULL");
+          }
+
+          if (!hasTripId && expensesInfo.length > 0) {
+            // Alter expenses table to add trip_id
+            await tx.executeSql("ALTER TABLE expenses ADD COLUMN trip_id INTEGER REFERENCES trips(id) DEFAULT NULL");
+
+            // Migrate existing expenses to automatically generated trips
+            // Group expenses strictly by country_id, taking the most recent or arbitrary currency for the trip base
+            const existingExpenses = await db.getAllAsync<{ country_id: number, selected_currency: string, home_currency: string }>(
+              "SELECT country_id, MAX(selected_currency) as selected_currency, MAX(home_currency) as home_currency FROM expenses WHERE country_id IS NOT NULL GROUP BY country_id"
+            );
+
+            // Get home country id
+            const homeCountryRows = await db.getAllAsync<{ home_country_id: number }>("SELECT home_country_id FROM home_country LIMIT 1");
+            const homeCountryId = homeCountryRows.length > 0 ? homeCountryRows[0].home_country_id : null;
+
+            let homeCurrency = "USD"; // Default fallback
+            if (homeCountryId) {
+              const homeCountryInfo = await db.getAllAsync<{ currency: string }>("SELECT currency FROM countries WHERE id = ?", [homeCountryId]);
+              if (homeCountryInfo.length > 0 && homeCountryInfo[0].currency) {
+                homeCurrency = homeCountryInfo[0].currency;
+              }
+            }
+
+            // Get latest expense country_id
+            const latestExpenseRows = await db.getAllAsync<{ country_id: number }>("SELECT country_id FROM expenses WHERE country_id IS NOT NULL ORDER BY date DESC LIMIT 1");
+            const latestCountryId = latestExpenseRows.length > 0 ? latestExpenseRows[0].country_id : null;
+
+            for (const exp of existingExpenses) {
+              // Find country name and currency
+              const countryInfo = await db.getAllAsync<{ country: string, currency: string }>("SELECT country, currency FROM countries WHERE id = ?", [exp.country_id]);
+              const countryName = countryInfo.length > 0 ? countryInfo[0].country : "Unknown Country";
+
+              const targetCurrency = countryInfo.length > 0 && countryInfo[0].currency ? countryInfo[0].currency : exp.selected_currency;
+              const baseCurrency = homeCurrency;
+
+              const isActive = exp.country_id === latestCountryId ? 1 : 0;
+
+              // Create a single legacy trip for this country
+              await tx.executeSql(
+                "INSERT INTO trips (name, country_id, base_currency, target_currency, is_active) VALUES (?, ?, ?, ?, ?)",
+                [`Trip to ${countryName}`, exp.country_id, baseCurrency, targetCurrency, isActive]
+              );
+
+              // Get the trip id
+              const trips = await db.getAllAsync<{ id: number }>("SELECT id FROM trips ORDER BY id DESC LIMIT 1");
+              if (trips.length > 0) {
+                const tripId = trips[0].id;
+                // Update ALL expenses for this country to use this single trip_id
+                await tx.executeSql("UPDATE expenses SET trip_id = ? WHERE country_id = ?", [tripId, exp.country_id]);
+              }
+            }
+          }
 
           // Check if countries table is empty
           const result = await db.getAllAsync("SELECT * FROM countries");

@@ -68,97 +68,97 @@ export const expensesArray = [
   {
     key: "rent",
     icon: home,
-    color: "#df53f4",
+    color: "#7C6EE6",
     text: "Rent",
   },
   {
     key: "flights",
     icon: airplain,
-    color: "#53acf4",
+    color: "#4EAADC",
     text: "Flights",
   },
   {
     key: "food",
     icon: food,
-    color: "#494EBF",
+    color: "#5B6ABF",
     text: "Food",
   },
   {
     key: "groceries",
     icon: groceries,
-    color: "#EC6DB9",
+    color: "#E87BA8",
     text: "Groceries",
   },
   {
     key: "cafe",
     icon: cup,
-    color: "#553F39",
+    color: "#A0785C",
     text: "Cafe",
   },
   {
     key: "taxi",
     icon: car,
-    color: "#F7D253",
+    color: "#E8B44C",
     text: "Taxi",
   },
   {
     key: "entertainment",
     icon: entertainment,
-    color: "#77BD66",
+    color: "#5EAE6E",
     text: "Entertainment",
   },
   {
     key: "metro",
     icon: metro,
-    color: "#DA536C",
+    color: "#D4637A",
     text: "Metro",
   },
   {
     key: "souvenir",
     icon: souvenir,
-    color: "#f45355",
+    color: "#E56B6D",
     text: "Souvenir",
   },
   {
     key: "insurance",
     icon: umbrella,
-    color: "#ef6b13",
+    color: "#D97A3E",
     text: "Insurance",
   },
   {
     key: "clothes",
     icon: tshirt,
-    color: "#9684c9",
+    color: "#8E7DC8",
     text: "Clothes",
   },
   {
     key: "electronics",
     icon: display,
-    color: "#212224",
+    color: "#4A5568",
     text: "Electronics",
   },
   {
     key: "health",
     icon: pharmacy,
-    color: "#5dc18a",
+    color: "#4DB88A",
     text: "Health",
   },
   {
     key: "beauty",
     icon: beauty,
-    color: "#17c7ea",
+    color: "#3BBDD4",
     text: "Beauty",
   },
   {
     key: "savings",
     icon: savings,
-    color: "#ebacef",
+    color: "#C490D1",
     text: "Savings",
   },
   {
     key: "other",
     icon: other,
-    color: "#8b7c93",
+    color: "#8B8FA3",
     text: "Other",
   },
 ];
@@ -168,97 +168,97 @@ export const expensesList = {
   rent: {
     key: "rent",
     icon: home,
-    color: "#df53f4",
+    color: "#7C6EE6",
     text: "Rent",
   },
   flights: {
     key: "flights",
     icon: airplain,
-    color: "#53acf4",
+    color: "#4EAADC",
     text: "Flights",
   },
   food: {
     key: "food",
     icon: food,
-    color: "#494EBF",
+    color: "#5B6ABF",
     text: "Food",
   },
   groceries: {
     key: "groceries",
     icon: groceries,
-    color: "#EC6DB9",
+    color: "#E87BA8",
     text: "Groceries",
   },
   cafe: {
     key: "cafe",
     icon: cup,
-    color: "#553F39",
+    color: "#A0785C",
     text: "Cafe",
   },
   taxi: {
     key: "taxi",
     icon: car,
-    color: "#F7D253",
+    color: "#E8B44C",
     text: "Taxi",
   },
   entertainment: {
     key: "entertainment",
     icon: entertainment,
-    color: "#77BD66",
+    color: "#5EAE6E",
     text: "Entertainment",
   },
   metro: {
     key: "metro",
     icon: metro,
-    color: "#DA536C",
+    color: "#D4637A",
     text: "Metro",
   },
   souvenir: {
     key: "souvenir",
     icon: souvenir,
-    color: "#f45355",
+    color: "#E56B6D",
     text: "Souvenir",
   },
   insurance: {
     key: "insurance",
     icon: umbrella,
-    color: "#ef6b13",
+    color: "#D97A3E",
     text: "Insurance",
   },
   clothes: {
     key: "clothes",
     icon: tshirt,
-    color: "#9684c9",
+    color: "#8E7DC8",
     text: "Clothes",
   },
   electronics: {
     key: "electronics",
     icon: display,
-    color: "#212224",
+    color: "#4A5568",
     text: "Electronics",
   },
   health: {
     key: "health",
     icon: pharmacy,
-    color: "#5dc18a",
+    color: "#4DB88A",
     text: "Health",
   },
   beauty: {
     key: "beauty",
     icon: beauty,
-    color: "#17c7ea",
+    color: "#3BBDD4",
     text: "Beauty",
   },
   savings: {
     key: "savings",
     icon: savings,
-    color: "#ebacef",
+    color: "#C490D1",
     text: "Savings",
   },
   other: {
     key: "other",
     icon: other,
-    color: "#8b7c93",
+    color: "#8B8FA3",
     text: "Other",
   },
 };
@@ -286,7 +286,7 @@ export function isExpenseCategory(
   if (expensesList.hasOwnProperty(anyString)) {
     return true;
   }
-  
+
   // For backward compatibility with imported data, log a warning but don't fail
   console.warn(`Warning: Unknown expense category "${anyString}", treating as valid for backward compatibility`);
   return true; // Return true to allow the category to be used
@@ -347,7 +347,7 @@ export function mergeCategories(customCategories: CustomCategoryType[] = []) {
 
   customCategories.forEach(category => {
     const icon = getIconFromName(category.icon);
-    
+
     // Add to array
     mergedExpensesArray.push({
       key: category.key,
@@ -355,7 +355,7 @@ export function mergeCategories(customCategories: CustomCategoryType[] = []) {
       color: category.color,
       text: category.text
     });
-    
+
     // Add to object
     mergedExpensesList[category.key] = {
       key: category.key,
@@ -364,9 +364,9 @@ export function mergeCategories(customCategories: CustomCategoryType[] = []) {
       text: category.text
     };
   });
-  
+
   // Update the global merged expenses list
   globalMergedExpensesList = mergedExpensesList;
-  
+
   return { mergedExpensesArray, mergedExpensesList };
 }

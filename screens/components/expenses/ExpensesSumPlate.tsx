@@ -1,63 +1,64 @@
 import React from "react";
-import { StyleSheet } from "react-native";
-import { View, Text } from "native-base";
+import { StyleSheet, View, Text } from "react-native";
 import { currencyList } from "../../../utils/currencyList";
 import useTotalExpenses from "../../../db/hooks/useTotalExpenses";
 import { UseExpensesFilter } from "../../../db/hooks/useExpenses";
 import { formatNumber } from "../../../utils/formatNumber";
 import { getCurrentMonth } from "../../../utils/getCurrentMonth";
 
-interface ExpensesSumPlate {
+interface ExpensesSumPlateProps {
   currency: keyof typeof currencyList;
   filter: UseExpensesFilter;
+  tripId?: number;
 }
 
 export default function ExpensesSumPlate({
   currency,
   filter,
-}: ExpensesSumPlate) {
+  tripId,
+}: ExpensesSumPlateProps) {
   const isFilterEmpty = Object.keys(filter).length === 0;
   const currentMonth = getCurrentMonth();
 
   const { data: totalSum } = useTotalExpenses(
-    isFilterEmpty ? { monthYear: currentMonth } : filter
+    isFilterEmpty
+      ? (tripId ? { tripId } : { monthYear: currentMonth })
+      : { ...filter, tripId }
   );
+
+  const label = isFilterEmpty
+    ? (tripId ? "TOTAL TRIP SPENDING" : "SPENT THIS MONTH")
+    : "FILTERED SPENDING";
+
   return (
     <View style={styles.plate}>
-      <Text style={styles.total}>{`SPENT ${
-        isFilterEmpty ? "IN CURRENT MONTH" : ""
-      }`}</Text>
-      <View>
-        <Text style={styles.sumInfo}>
-          {currencyList[currency]}{" "}
-          {totalSum
-            ? formatNumber(Number((totalSum[0].total / 100).toFixed(2)))
-            : 0}
-        </Text>
-      </View>
+      <Text style={styles.total}>{label}</Text>
+      <Text style={styles.sumInfo}>
+        {currencyList[currency]}{" "}
+        {totalSum
+          ? formatNumber(Number((totalSum[0].total / 100).toFixed(2)))
+          : 0}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   plate: {
-    justifyContent: "center",
-    width: "100%",
-    height: 150,
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-
   sumInfo: {
-    color: "#FFFFFF",
-    fontSize: 50,
-    fontWeight: "400",
-    lineHeight: 70,
+    color: "#1A1A1A",
+    fontSize: 36,
+    fontWeight: "700",
+    lineHeight: 44,
   },
   total: {
-    fontSize: 18,
+    fontSize: 13,
     fontWeight: "600",
-    lineHeight: 24,
-    marginTop: 10,
-    color: "#FFFFFF80",
+    letterSpacing: 0.5,
+    color: "#888888",
+    marginBottom: 4,
   },
 });

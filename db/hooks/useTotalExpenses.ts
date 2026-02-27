@@ -6,6 +6,7 @@ export interface UseExpensesFilter {
   paymentCountryId?: number;
   category?: string;
   monthYear?: string;
+  tripId?: number;
 }
 
 export const USE_TOTAL_EXPENSES_QUERY_KEY = "useTotalExpenses";
@@ -14,9 +15,10 @@ export default function useTotalExpenses({
   paymentCountryId,
   category,
   monthYear,
+  tripId,
 }: UseExpensesFilter) {
   return useQuery({
-    queryKey: [USE_TOTAL_EXPENSES_QUERY_KEY, paymentCountryId, category, monthYear],
+    queryKey: [USE_TOTAL_EXPENSES_QUERY_KEY, paymentCountryId, category, monthYear, tripId],
     queryFn: () => {
       const filters = [];
       const values = [];
@@ -29,6 +31,11 @@ export default function useTotalExpenses({
       if (category) {
         filters.push("expenses.expense_types = ?");
         values.push(category);
+      }
+
+      if (tripId) {
+        filters.push("expenses.trip_id = ?");
+        values.push(tripId);
       }
 
       if (monthYear) {

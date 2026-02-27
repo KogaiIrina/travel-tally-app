@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View, Pressable, Text } from "react-native";
 import { UseExpensesFilter } from "../db/hooks/useExpenses";
 import { expensesList, isExpenseCategory, globalMergedExpensesList } from "../utils/expensesList";
-import CloseIcon from "../screens/components/expenses/icons/close";
+import { Ionicons } from "@expo/vector-icons";
 
 type FilterParams = {
   expenseFilter: UseExpensesFilter;
@@ -46,7 +46,7 @@ export default function AppliedFilterIndicator({
         }}
         style={styles.removeFilterButton}
       >
-        <CloseIcon />
+        <Ionicons name="close" size={18} color="#4169E1" />
       </Pressable>
     </View>
   );
@@ -54,45 +54,44 @@ export default function AppliedFilterIndicator({
 
 const styles = StyleSheet.create({
   removeFilterButton: {
-    height: 40,
-    width: 40,
-    borderRadius: 50,
+    height: 30,
+    width: 30,
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "flex-start",
-    shadowColor: "#ffffff",
-    shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.3,
-    elevation: 0,
+    marginLeft: 6,
+    marginRight: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   filters: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    color: "#FFFFFF",
-    height: 40,
-    backgroundColor: "#1C1D1F",
-    borderRadius: 10,
-    marginTop: 12,
+    height: 44,
+    backgroundColor: "#F4F7FF",
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: "#4169E1",
     display: "flex",
-    alignSelf: "flex-end",
-    shadowColor: "#EDEAEA",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 1,
-    elevation: 5,
+    paddingHorizontal: 8,
+    alignSelf: "flex-start",
   },
   filterText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    lineHeight: 23,
-    marginLeft: 10,
-    marginRight: 5,
+    color: "#1A1A1A",
+    fontWeight: "600",
+    fontSize: 14,
+    marginLeft: 8,
+    marginRight: 6,
   },
   icon: {
-    width: 30,
-    height: 30,
-    borderRadius: 50,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },

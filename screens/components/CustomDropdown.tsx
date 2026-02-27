@@ -59,17 +59,18 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | null>(null);
-  
+
   // Determine if dropdown is open based on external or internal state
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
 
   // Find the selected item based on the selectedValue
   useEffect(() => {
-    if (selectedValue !== undefined && items.length > 0) {
-      const found = items.find(item => item.value === selectedValue);
-      if (found) {
-        setSelectedItem(found);
-      }
+    if (selectedValue !== undefined && selectedValue !== "" && items.length > 0) {
+      // Use loose equality to safely match numbers passed as strings (e.g. ID 1 vs "1")
+      const found = items.find(item => item.value == selectedValue);
+      setSelectedItem(found || null);
+    } else {
+      setSelectedItem(null);
     }
   }, [selectedValue, items]);
 
@@ -82,10 +83,10 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   const toggleDropdown = () => {
     if (disabled) return;
-    
+
     const newIsOpen = !isOpen;
     setInternalIsOpen(newIsOpen);
-    
+
     if (!newIsOpen && onClose) {
       onClose();
     }
@@ -153,7 +154,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={[
-                styles.dropdown, 
+                styles.dropdown,
                 { width: getDropdownWidth() },
                 dropdownStyle
               ]}>
@@ -193,11 +194,16 @@ const styles = StyleSheet.create({
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 50,
+    height: 56,
     borderWidth: 1,
-    borderRadius: 10,
-    borderColor: '#C3C5F3',
+    borderRadius: 12,
+    borderColor: '#E8EEFF',
     backgroundColor: '#FFFFFF',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   disabledSelector: {
     backgroundColor: '#F5F5F5',
@@ -208,11 +214,11 @@ const styles = StyleSheet.create({
     width: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F3F6FF',
-    borderTopLeftRadius: 9,
-    borderBottomLeftRadius: 9,
-    borderRightWidth: 0.3,
-    borderRightColor: '#C3C5F3',
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    borderRightWidth: 1,
+    borderRightColor: '#E8EEFF',
   },
   labelContainer: {
     flex: 1,
@@ -220,7 +226,8 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 16,
-    color: '#333',
+    color: '#1A1A1A',
+    fontWeight: '500',
   },
   placeholderText: {
     fontSize: 16,
@@ -236,13 +243,13 @@ const styles = StyleSheet.create({
   dropdown: {
     maxHeight: 300,
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#C3C5F3',
+    borderColor: '#E8EEFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 5,
   },
   scrollView: {
@@ -251,14 +258,14 @@ const styles = StyleSheet.create({
   dropdownItem: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#F4F7FF',
   },
   selectedItem: {
-    backgroundColor: '#F3F6FF',
+    backgroundColor: '#F4F7FF',
   },
   dropdownItemText: {
     fontSize: 16,
-    color: '#333',
+    color: '#1A1A1A',
   },
 });
 
